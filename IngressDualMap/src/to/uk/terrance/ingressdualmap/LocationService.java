@@ -1,5 +1,8 @@
 package to.uk.terrance.ingressdualmap;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -26,6 +29,7 @@ public class LocationService extends Service {
     private boolean mRunning = false;
     private static LocationManager mLocationManager;
     private static NotificationManager mNotificationManager;
+    private static ArrayList<Portal> mPortals = new ArrayList<Portal>();
     private UpdateThread mUpdateThread;
 
     IDMLocationListener[] mLocationListeners = new IDMLocationListener[] {
@@ -43,8 +47,8 @@ public class LocationService extends Service {
         public void onLocationChanged(Location location) {
             Log.d(Utils.TAG, "Location update: " + location.getLatitude() + ", " + location.getLongitude());
             mLastLocation = location;
-            for (int i = 0; i < Portal.PORTALS.size(); i++) {
-                Portal portal = Portal.PORTALS.get(i);
+            for (int i = 0; i < mPortals.size(); i++) {
+                Portal portal = mPortals.get(i);
                 float[] distance = new float[1];
                 Location.distanceBetween(location.getLatitude(), location.getLongitude(),
                                          portal.getLatitude(), portal.getLongitude(), distance);
@@ -86,8 +90,8 @@ public class LocationService extends Service {
             Log.d(Utils.TAG, "Update thread started.");
             try {
                 while (mGo) {
-                    for (int i = 0; i < Portal.PORTALS.size(); i++) {
-                        Portal portal = Portal.PORTALS.get(i);
+                    for (int i = 0; i < mPortals.size(); i++) {
+                        Portal portal = mPortals.get(i);
                         notifyPortal(mContext, i, (portal.getDistance() <= 50 || portal.isPinned()));
                     }
                     sleep(500);
@@ -125,19 +129,19 @@ public class LocationService extends Service {
 
     public static void notifyPortal(Context context, int i, boolean show) {
         if (show) {
-            Portal portal = Portal.PORTALS.get(i);
+            Portal portal = mPortals.get(i);
             if (portal.getNotificationBuilder() == null) {
-                Intent optsIntent = new Intent(context, NotificationActivity.class);
+                Intent optsIntent = new Intent(context, MainActivity.class);
                 optsIntent.setAction(Utils.PACKAGE + ".opts." + i);
                 NotificationCompat.Builder notif = new NotificationCompat.Builder(context)
                     .setOngoing(true).setContentTitle(portal.getName()).setSmallIcon(R.drawable.ic_notif)
                     .setContentIntent(PendingIntent.getActivity(context, 0, optsIntent, 0));
                 Action[] actions = new Action[]{
-                    new Action("Hack", NotificationActivity.ACTION_HACK, R.drawable.ic_hack),
-                    new Action("Reset", NotificationActivity.ACTION_RESET, R.drawable.ic_reset)
+                    new Action("Hack", MainActivity.ACTION_HACK, R.drawable.ic_hack),
+                    new Action("Reset", MainActivity.ACTION_RESET, R.drawable.ic_reset)
                 };
                 for (Action action : actions) {
-                    Intent actionIntent = new Intent(context, NotificationActivity.class);
+                    Intent actionIntent = new Intent(context, MainActivity.class);
                     actionIntent.setAction(Utils.PACKAGE + "." + action.getAction() + "." + i);
                     notif.addAction(action.getDrawable(), action.getLabel(), PendingIntent.getActivity(context, 0, actionIntent, 0));
                 }
@@ -165,7 +169,8 @@ public class LocationService extends Service {
         }
     }
 
-    public static void clearNotifs() {
+    public static void clearNotifs(Context context) {
+        initApp(context);
         mNotificationManager.cancelAll();
     }
 
@@ -177,6 +182,13 @@ public class LocationService extends Service {
     private final ILocationService.Stub mBinder = new ILocationService.Stub() {
         public boolean isRunning() {
             return mRunning;
+        }
+        public void setPortals(List<Portal> portals) {
+            mPortals.clear();
+            mPortals.addAll(portals);
+        }
+        public Portal getPortal(int i) {
+            return mPortals.get(i);
         }
     };
 
@@ -190,7 +202,7 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         Log.i(Utils.TAG, "Starting location service...");
-        initApp();
+        initApp(this);
         mUpdateThread = new UpdateThread(this);
         mUpdateThread.start();
         try {
@@ -214,7 +226,7 @@ public class LocationService extends Service {
     @Override
     public void onDestroy() {
         Log.i(Utils.TAG, "Stopping location service...");
-        initApp();
+        initApp(this);
         if (mUpdateThread != null) {
             mUpdateThread.end();
         }
@@ -229,12 +241,12 @@ public class LocationService extends Service {
         Log.i(Utils.TAG, "Service is no longer running!");
     }
 
-    public void initApp() {
+    public static void initApp(Context context) {
         if (mLocationManager == null) {
-            mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
+            mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         }
         if (mNotificationManager == null) {
-            mNotificationManager = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            mNotificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
         }
     }
 
