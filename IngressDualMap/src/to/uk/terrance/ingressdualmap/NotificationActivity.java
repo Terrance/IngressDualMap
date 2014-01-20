@@ -2,9 +2,11 @@ package to.uk.terrance.ingressdualmap;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.widget.Toast;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 
 public class NotificationActivity extends Activity {
@@ -57,8 +59,17 @@ public class NotificationActivity extends Activity {
                         finish();
                     }
                 })
-                .create()
-                .show();
+                .setOnKeyListener(new Dialog.OnKeyListener() {
+                    @Override
+                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                        if (keyCode == KeyEvent.KEYCODE_BACK) {
+                            dialog.cancel();
+                            finish();
+                        }
+                        return false;
+                    }
+                })
+                .create().show();
         } else if (action.equals("hack")) {
             Log.i("IDM_Location", portal.toString());
             hackPortal(i, portal);
@@ -75,7 +86,6 @@ public class NotificationActivity extends Activity {
         String message = "Hacked " + portal.getName() + ".\n";
         if (hacks > 0) {
             portal.setRunningHot();
-            Log.d("IDM_Location", "" + portal.checkRunningHot());
             message += hacks + " hack" + Utils.plural(hacks) + " remaining before burnout.";
         } else {
             portal.setBurnedOut();
@@ -87,18 +97,19 @@ public class NotificationActivity extends Activity {
 
     public void burnOutPortal(int i, Portal portal) {
         portal.setBurnedOut();
-        Toast.makeText(this, portal.getName() + " burned out.", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, portal.getName() + " burned out.", Toast.LENGTH_SHORT).show();
         LocationService.notifyPortal(this, i, true);
     }
 
     public void resetPortal(int i, Portal portal) {
         portal.reset();
-        Toast.makeText(this, "Reset " + portal.getName() + ".", Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Reset " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
         LocationService.notifyPortal(this, i, true);
     }
 
     public void pinPortal(int i, Portal portal) {
         portal.setPinned(!portal.isPinned());
+        Toast.makeText(this, (portal.isPinned() ? "P" : "Unp") + "inned " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
         LocationService.notifyPortal(this, i, (portal.getDistance() <= 50 || portal.isPinned()));
     }
 
