@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Ingress Dual Map</string>
+    <string name="action_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="service_tag">IDM_Location</string>
+    <string name="start_service">Start Service</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="service_started">Service Started</string>
+    <string name="service_stopped">Service Stopped</string>
+    <string name="spawn_test_portal">Spawn Test Portal</string>
+    <string name="clear_notifications">Clear Notifications</string>
+    <string name="start_ingress">Start Ingress</string>
+
+</resources>
