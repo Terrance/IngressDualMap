@@ -12,6 +12,7 @@ public class Portal implements Parcelable {
     private String mName;
     private double mLatitude;
     private double mLongitude;
+    private int mKeys;
     private int mHacksRemaining;
     private float mDistance = Float.MAX_VALUE;
     private boolean mPinned = false;
@@ -57,6 +58,12 @@ public class Portal implements Parcelable {
     }
     public void setHacksRemaining(int hacksRemaining) {
         mHacksRemaining = hacksRemaining;
+    }
+    public int getKeys() {
+        return mKeys;
+    }
+    public void setKeys(int keys) {
+        mKeys = keys;
     }
     public boolean isPinned() {
         return mPinned;
@@ -127,6 +134,21 @@ public class Portal implements Parcelable {
         mName = src.readString();
         mLatitude = src.readDouble();
         mLongitude = src.readDouble();
+        mKeys = src.readInt();
+        mHacksRemaining = src.readInt();
+        mDistance = src.readFloat();
+        mPinned = src.readInt() == 1;
+        mResoBuzz = src.readInt() == 1;
+        long hackReset = src.readLong();
+        if (hackReset != -1) {
+            mHackReset = Calendar.getInstance();
+            mHackReset.setTimeInMillis(hackReset);
+        }
+        long burnoutReset = src.readLong();
+        if (burnoutReset != -1) {
+            mBurnoutReset = Calendar.getInstance();
+            mBurnoutReset.setTimeInMillis(burnoutReset);
+        }
     }
 
     public static final Parcelable.Creator<Portal> CREATOR = new Parcelable.Creator<Portal>() {
@@ -148,6 +170,13 @@ public class Portal implements Parcelable {
         dest.writeString(mName);
         dest.writeDouble(mLatitude);
         dest.writeDouble(mLongitude);
+        dest.writeInt(mKeys);
+        dest.writeInt(mHacksRemaining);
+        dest.writeFloat(mDistance);
+        dest.writeInt(mPinned ? 1 : 0);
+        dest.writeInt(mResoBuzz ? 1 : 0);
+        dest.writeLong(mHackReset == null ? -1 : mHackReset.getTimeInMillis());
+        dest.writeLong(mBurnoutReset == null ? -1 : mBurnoutReset.getTimeInMillis());
     }
 
     @Override

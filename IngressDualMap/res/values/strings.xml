@@ -15,6 +15,8 @@
     <string name="mark_burned_out">Mark burned out</string>
     <string name="reset">Reset</string>
     <string name="reset_status">Reset status</string>
+    <string name="edit_key_count">Edit key count</string>
+    <string name="save">Save</string>
     <string name="pin">Pin</string>
     <string name="pin_notification">Pin notification</string>
     <string name="unpin_notification">Unpin notification</string>

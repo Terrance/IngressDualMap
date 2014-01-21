@@ -15,9 +15,9 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.os.Vibrator;
 import android.util.Log;
-
 import android.support.v4.app.NotificationCompat;
 
 public class LocationService extends Service {
@@ -98,6 +98,7 @@ public class LocationService extends Service {
             Log.d(Utils.TAG, "Update thread started.");
             try {
                 while (mGo) {
+                    Log.d(Utils.TAG, "" + mPortals.size());
                     for (int i = 0; i < mPortals.size(); i++) {
                         Portal portal = mPortals.get(i);
                         Float distance = portal.getDistance();
@@ -173,23 +174,34 @@ public class LocationService extends Service {
                                      portal.getLatitude(), portal.getLongitude(), distance);
             // Generate notification text
             String text = Math.round(distance[0]) + "m away | ";
+            int hacks = portal.getHacksRemaining();
+            text += hacks + " more hack" + Utils.plural(hacks);
+            String longText = text;
+            int keys = portal.getKeys();
+            if (keys > 0) {
+                longText += " | " + keys + " key" + Utils.plural(keys);
+            }
             int burnedOutTime = portal.checkBurnedOut();
             if (burnedOutTime > 0) {
-                text += "burned out (wait " + Utils.shortTime(burnedOutTime) + ")";
+                String time = Utils.shortTime(burnedOutTime);
+                longText += "\nBurned out: wait " + time;
+                text += " | " + time;
             } else {
-                int hacks = portal.getHacksRemaining();
-                text += hacks + " more hack" + Utils.plural(hacks);
                 int runningHotTime = portal.checkRunningHot();
                 if (runningHotTime > 0) {
-                    text += " (wait " + Utils.shortTime(runningHotTime) + ")";
+                    String time = Utils.shortTime(runningHotTime);
+                    longText += "\nRunning hot: wait " + time;
+                    text += " | " + time;
                 }
             }
             // Show notification
-            String icons = (portal.isPinned() ? "\uD83D\uDCCC" : "") + (portal.isResoBuzz() ? "\uD83D\uDD14" : "");
-            Notification notif = portal.getNotificationBuilder()
+            String icons = (portal.isPinned() ? "\uD83D\uDCCC" : "")
+                         + (portal.getKeys() > 0 ? "\uD83D\uDD11" : "")
+                         + (portal.isResoBuzz() ? "\uD83D\uDD14" : "");
+            NotificationCompat.Builder builder = portal.getNotificationBuilder()
                 .setContentTitle((icons.length() > 0 ? icons + " " : "") + portal.getName())
-                .setContentText(text).build();
-            mNotificationManager.notify(i, notif);
+                .setContentText(text);
+            mNotificationManager.notify(i, new NotificationCompat.BigTextStyle(builder).bigText(longText).build());
         } else {
             // Hide notification
             mNotificationManager.cancel(i);
@@ -217,6 +229,15 @@ public class LocationService extends Service {
         }
         public Portal getPortal(int i) {
             return mPortals.get(i);
+        }
+        @Override
+        public void updatePortal(int i, Portal portal) {
+            mPortals.set(i, portal);
+        }
+        @Override
+        public void notifyPortal(int i) throws RemoteException {
+            Portal portal = mPortals.get(i);
+            LocationService.notifyPortal(LocationService.this, i, portal.getDistance() <= 50 || portal.isPinned());
         }
     };
 

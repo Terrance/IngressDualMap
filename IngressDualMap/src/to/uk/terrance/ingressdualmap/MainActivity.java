@@ -18,6 +18,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
+import com.michaelnovakjr.numberpicker.NumberPickerDialog;
+
 public class MainActivity extends Activity {
 
     public static final String ACTION_OPTS = "opts";
@@ -28,6 +30,7 @@ public class MainActivity extends Activity {
     private boolean mFromNotif = false;
     private boolean mBound = false;
     private AlertDialog mMainMenu, mImportList, mPortalMenu;
+    private NumberPickerDialog mKeyCount;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
 
@@ -118,6 +121,24 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void updatePortal(int i, Portal portal) {
+        if (mBound && mLocationService != null) {
+            try {
+                // Update a portal in the service
+                mLocationService.updatePortal(i, portal);
+            } catch (RemoteException e) {}
+        }
+    }
+
+    public void notifyPortal(int i) {
+        if (mBound && mLocationService != null) {
+            try {
+                // Refresh the notification
+                mLocationService.notifyPortal(i);
+            } catch (RemoteException e) {}
+        }
+    }
+
     public void showMainMenu() {
         hideAll();
         mMainMenu = new AlertDialog.Builder(this)
@@ -133,8 +154,10 @@ public class MainActivity extends Activity {
                             Intent intent = new Intent(getApplicationContext(), LocationService.class);
                             intent.addCategory(Utils.TAG);
                             if (isRunning()) {
+                                Toast.makeText(MainActivity.this, "Service stopped!", Toast.LENGTH_LONG).show();
                                 stopService(intent);
                             } else {
+                                Toast.makeText(MainActivity.this, "Service started!", Toast.LENGTH_LONG).show();
                                 startService(intent);
                             }
                             break;
@@ -279,6 +302,7 @@ public class MainActivity extends Activity {
                     getString(R.string.mark_hacked),
                     getString(R.string.mark_burned_out),
                     getString(R.string.reset_status),
+                    getString(R.string.edit_key_count),
                     getString(portal.isPinned() ? R.string.unpin_notification : R.string.pin_notification),
                     getString(portal.isResoBuzz() ? R.string.disable_resonator_buzzer : R.string.enable_resonator_buzzer)
                 }, new DialogInterface.OnClickListener() {
@@ -295,9 +319,12 @@ public class MainActivity extends Activity {
                                 resetPortal(i, portal);
                                 break;
                             case 3:
+                                showKeyCount(i, portal);
+                                return;
+                            case 4:
                                 pinPortal(i, portal);
                                 break;
-                            case 4:
+                            case 5:
                                 resoBuzzPortal(i, portal);
                                 break;
                         }
@@ -343,10 +370,51 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void showKeyCount(final int i, final Portal portal) {
+        mKeyCount = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.edit_key_count), null, null);
+        mKeyCount.getNumberPicker().setRange(0, 99);
+        mKeyCount.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.save), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                portal.setKeys(((NumberPickerDialog) dialog).getNumberPicker().getCurrent());
+                updatePortal(i, portal);
+                Toast.makeText(MainActivity.this, "Updated key count to " + portal.getKeys() + ".", Toast.LENGTH_LONG).show();
+                dialog.dismiss();
+                finish();
+            }
+        });
+        mKeyCount.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                finish();
+            }
+        });
+        mKeyCount.setOnKeyListener(new Dialog.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.cancel();
+                    finish();
+                }
+                return false;
+            }
+        });
+        mKeyCount.show();
+    }
+
+    public void hideKeyCount() {
+        if (mKeyCount != null) {
+            mKeyCount.cancel();
+            mKeyCount = null;
+        }
+    }
+
     public void hideAll() {
         hideMainMenu();
         hideImportList();
         hidePortalMenu();
+        hideKeyCount();
     }
 
     public void hackPortal(int i, Portal portal) {
@@ -363,40 +431,45 @@ public class MainActivity extends Activity {
             portal.setBurnedOut();
             message += "Portal burnt out!";
         }
+        updatePortal(i, portal);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        LocationService.notifyPortal(this, i, true);
+        notifyPortal(i);
     }
 
     public void burnOutPortal(int i, Portal portal) {
         // Burnt out, wait 4 hours
         portal.setBurnedOut();
+        updatePortal(i, portal);
         Toast.makeText(this, portal.getName() + " burned out.", Toast.LENGTH_SHORT).show();
-        LocationService.notifyPortal(this, i, true);
+        notifyPortal(i);
     }
 
     public void resetPortal(int i, Portal portal) {
         // Clear any timers or hack counts
         portal.reset();
+        updatePortal(i, portal);
         Toast.makeText(this, "Reset " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
-        LocationService.notifyPortal(this, i, true);
+        notifyPortal(i);
     }
 
     public void pinPortal(int i, Portal portal) {
         // Toggle pinned notification (doesn't disappear when out of range)
         portal.setPinned(!portal.isPinned());
+        updatePortal(i, portal);
         Toast.makeText(this, (portal.isPinned() ? "P" : "Unp") + "inned " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
-        LocationService.notifyPortal(this, i, (portal.getDistance() <= 50 || portal.isPinned()));
+        notifyPortal(i);
     }
 
     public void resoBuzzPortal(int i, Portal portal) {
         // Toggle resonator buzzing (vibrate when at optimum resonator distance, 35-40m)
         portal.setResoBuzz(!portal.isResoBuzz());
+        updatePortal(i, portal);
         if (portal.isResoBuzz()) {
             Toast.makeText(this, "Resonator buzz enabled.  Will vibrate at 35-40m from portal.", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(this, "Resonator buzz disabled.", Toast.LENGTH_SHORT).show();
         }
-        LocationService.notifyPortal(this, i, true);
+        notifyPortal(i);
     }
 
 }
