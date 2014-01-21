@@ -9,6 +9,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -103,7 +104,7 @@ public class LocationService extends Service {
                         // Update notifications
                         notifyPortal(mContext, i, (distance <= 50 || portal.isPinned()));
                         // Handle resonator buzzer
-                        if (distance >= 35 && distance <= 40) {
+                        if (portal.isResoBuzz() && distance >= 35 && distance <= 40) {
                             mVibrator.vibrate(new long[]{0, 100, 100, 100}, -1);
                         }
                     }
@@ -149,8 +150,9 @@ public class LocationService extends Service {
                 // Show menu on click
                 Intent optsIntent = new Intent(context, MainActivity.class);
                 optsIntent.setAction(Utils.PACKAGE + ".opts." + i);
-                NotificationCompat.Builder notif = new NotificationCompat.Builder(context)
-                    .setOngoing(true).setSmallIcon(R.drawable.ic_notif)
+                NotificationCompat.Builder notif = new NotificationCompat.Builder(context).setOngoing(true)
+                    .setSmallIcon(R.drawable.ic_logo)
+                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher))
                     .setContentIntent(PendingIntent.getActivity(context, 0, optsIntent, 0));
                 // Quick access notification actions
                 Action[] actions = new Action[]{
