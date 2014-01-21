@@ -158,7 +158,7 @@ public class LocationService extends Service {
                 Action[] actions = new Action[]{
                     new Action(context.getString(R.string.hack), MainActivity.ACTION_HACK, R.drawable.ic_hack),
                     new Action(context.getString(R.string.reset), MainActivity.ACTION_RESET, R.drawable.ic_reset),
-                    new Action(context.getString(R.string.pin_unpin), MainActivity.ACTION_PIN, R.drawable.ic_pin)
+                    new Action(context.getString(R.string.pin), MainActivity.ACTION_PIN, R.drawable.ic_pin)
                 };
                 for (Action action : actions) {
                     Intent actionIntent = new Intent(context, MainActivity.class);
@@ -267,7 +267,7 @@ public class LocationService extends Service {
             mLocationManager.removeUpdates(mLocationListeners[i]);
         }
         // Clear all notifications
-        mNotificationManager.cancelAll();
+        clearNotifs(this);
         mRunning = false;
         Log.i(Utils.TAG, "Service is no longer running!");
     }
