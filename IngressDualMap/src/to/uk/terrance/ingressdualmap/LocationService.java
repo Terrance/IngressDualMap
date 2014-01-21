@@ -32,21 +32,24 @@ public class LocationService extends Service {
     private static ArrayList<Portal> mPortals = new ArrayList<Portal>();
     private UpdateThread mUpdateThread;
 
+    // Two listeners, one for each type of location provider
     IDMLocationListener[] mLocationListeners = new IDMLocationListener[] {
-        new IDMLocationListener(LocationManager.GPS_PROVIDER, true),
-        new IDMLocationListener(LocationManager.NETWORK_PROVIDER, false)
+        new IDMLocationListener(LocationManager.GPS_PROVIDER),
+        new IDMLocationListener(LocationManager.NETWORK_PROVIDER)
     };
 
     private class IDMLocationListener implements LocationListener {
 
-        public IDMLocationListener(String provider, boolean enabled) {
+        public IDMLocationListener(String provider) {
             Log.d(Utils.TAG, "Initialized " + provider + " provider.");
         }
 
         @Override
         public void onLocationChanged(Location location) {
+            // New location received
             Log.d(Utils.TAG, "Location update: " + location.getLatitude() + ", " + location.getLongitude());
             mLastLocation = location;
+            // Refresh distances to each portal
             for (int i = 0; i < mPortals.size(); i++) {
                 Portal portal = mPortals.get(i);
                 float[] distance = new float[1];
@@ -77,23 +80,27 @@ public class LocationService extends Service {
 
         private Context mContext = null;
         private boolean mGo = true;
-    
+
         public void end() {
+            // Stop the thread cleanly
             mGo = false;
         }
 
         public UpdateThread(Context context) {
             mContext = context;
         }
+
         @Override
         public void run() {
             Log.d(Utils.TAG, "Update thread started.");
             try {
                 while (mGo) {
+                    // Update all notifications
                     for (int i = 0; i < mPortals.size(); i++) {
                         Portal portal = mPortals.get(i);
                         notifyPortal(mContext, i, (portal.getDistance() <= 50 || portal.isPinned()));
                     }
+                    // Wait a bit
                     sleep(500);
                 }
             } catch (InterruptedException e) {
@@ -130,15 +137,19 @@ public class LocationService extends Service {
     public static void notifyPortal(Context context, int i, boolean show) {
         if (show) {
             Portal portal = mPortals.get(i);
+            // Notification not yet created (generated as needed)
             if (portal.getNotificationBuilder() == null) {
+                // Show menu on click
                 Intent optsIntent = new Intent(context, MainActivity.class);
                 optsIntent.setAction(Utils.PACKAGE + ".opts." + i);
                 NotificationCompat.Builder notif = new NotificationCompat.Builder(context)
-                    .setOngoing(true).setContentTitle(portal.getName()).setSmallIcon(R.drawable.ic_notif)
+                    .setOngoing(true).setSmallIcon(R.drawable.ic_notif)
                     .setContentIntent(PendingIntent.getActivity(context, 0, optsIntent, 0));
+                // Quick access notification actions
                 Action[] actions = new Action[]{
-                    new Action("Hack", MainActivity.ACTION_HACK, R.drawable.ic_hack),
-                    new Action("Reset", MainActivity.ACTION_RESET, R.drawable.ic_reset)
+                    new Action(context.getString(R.string.hack), MainActivity.ACTION_HACK, R.drawable.ic_hack),
+                    new Action(context.getString(R.string.reset), MainActivity.ACTION_RESET, R.drawable.ic_reset),
+                    new Action(context.getString(R.string.pin_unpin), MainActivity.ACTION_PIN, R.drawable.ic_pin)
                 };
                 for (Action action : actions) {
                     Intent actionIntent = new Intent(context, MainActivity.class);
@@ -147,9 +158,11 @@ public class LocationService extends Service {
                 }
                 portal.setNotificationBuilder(notif);
             }
+            // Distance from current location to portal
             float[] distance = new float[1];
             Location.distanceBetween(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
                                      portal.getLatitude(), portal.getLongitude(), distance);
+            // Generate notification text
             String text = Math.round(distance[0]) + "m away | ";
             int burnedOutTime = portal.checkBurnedOut();
             if (burnedOutTime > 0) {
@@ -162,9 +175,13 @@ public class LocationService extends Service {
                     text += " (wait " + Utils.shortTime(runningHotTime) + ")";
                 }
             }
-            Notification notif = portal.getNotificationBuilder().setContentText(text).build();
+            // Show notification
+            Notification notif = portal.getNotificationBuilder()
+                .setContentTitle((portal.isPinned() ? "\uD83D\uDCCC " : "") + portal.getName())
+                .setContentText(text).build();
             mNotificationManager.notify(i, notif);
         } else {
+            // Hide notification
             mNotificationManager.cancel(i);
         }
     }
@@ -179,6 +196,7 @@ public class LocationService extends Service {
         return mBinder;
     }
 
+    // Methods exposed outside the service (for MainActivity)
     private final ILocationService.Stub mBinder = new ILocationService.Stub() {
         public boolean isRunning() {
             return mRunning;
@@ -203,8 +221,10 @@ public class LocationService extends Service {
     public void onCreate() {
         Log.i(Utils.TAG, "Starting location service...");
         initApp(this);
+        // Start notification updater
         mUpdateThread = new UpdateThread(this);
         mUpdateThread.start();
+        // Start location updates
         try {
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListeners[0]);
         } catch (java.lang.SecurityException e) {
@@ -227,15 +247,16 @@ public class LocationService extends Service {
     public void onDestroy() {
         Log.i(Utils.TAG, "Stopping location service...");
         initApp(this);
+        // Stop notification updater
         if (mUpdateThread != null) {
             mUpdateThread.end();
         }
         super.onDestroy();
-        if (mLocationManager != null) {
-            for (int i = 0; i < mLocationListeners.length; i++) {
-                mLocationManager.removeUpdates(mLocationListeners[i]);
-            }
+        // Stop location updates
+        for (int i = 0; i < mLocationListeners.length; i++) {
+            mLocationManager.removeUpdates(mLocationListeners[i]);
         }
+        // Clear all notifications
         mNotificationManager.cancelAll();
         mRunning = false;
         Log.i(Utils.TAG, "Service is no longer running!");

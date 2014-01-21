@@ -7,7 +7,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
 
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -50,7 +53,10 @@ public class PortalStore {
                                     if (params == null) {
                                         break;
                                     } else {
-                                        mPortals.add(new Portal(params[0], Float.valueOf(params[1]), Float.valueOf(params[2])));
+                                        Portal portal = new Portal(params[0], Float.valueOf(params[1]), Float.valueOf(params[2]));
+                                        if (!mPortals.contains(portal)) {
+                                            mPortals.add(portal);
+                                        }
                                     }
                                 } catch (ArrayIndexOutOfBoundsException e) {
                                     messages.add(line + ") Insufficient arguments.");
@@ -69,6 +75,8 @@ public class PortalStore {
                         mSuccess = false;
                         try {
                             OutputStream outputStream = new FileOutputStream(new File(file.getAbsolutePath() + ".log"));
+                            SimpleDateFormat formatter = new SimpleDateFormat("[dd/MM/yyyy HH:mm:ss]", Locale.getDefault());
+                            outputStream.write(formatter.format(Calendar.getInstance().getTime()).getBytes());
                             for (String message : messages.toArray(new String[messages.size()])) {
                                 outputStream.write(message.getBytes());
                             }

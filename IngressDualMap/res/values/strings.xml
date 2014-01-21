@@ -2,15 +2,19 @@
 <resources>
 
     <string name="app_name">Ingress Dual Map</string>
-    <string name="action_settings">Settings</string>
-    <string name="hello_world">Hello world!</string>
-    <string name="service_tag">IDM_Location</string>
-    <string name="start_service">Start Service</string>
-    <string name="stop_service">Stop Service</string>
-    <string name="service_started">Service Started</string>
-    <string name="service_stopped">Service Stopped</string>
-    <string name="spawn_test_portal">Spawn Test Portal</string>
-    <string name="clear_notifications">Clear Notifications</string>
-    <string name="start_ingress">Start Ingress</string>
+    <string name="start_service">Start service</string>
+    <string name="stop_service">Stop service</string>
+    <string name="started">Started</string>
+    <string name="stopped">Stopped</string>
+    <string name="import_portal_lists">Import portal lists</string>
+    <string name="clear_notifications">Clear notifications</string>
+    <string name="hack">Hack</string>
+    <string name="mark_hacked">Mark hacked</string>
+    <string name="burned_out">Burned out</string>
+    <string name="reset">Reset</string>
+    <string name="reset_status">Reset status</string>
+    <string name="pin_unpin">(Un)pin</string>
+    <string name="pin_notification">Pin notification</string>
+    <string name="unpin_notification">Unpin notification</string>
 
 </resources>

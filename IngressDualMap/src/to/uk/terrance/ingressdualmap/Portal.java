@@ -143,4 +143,22 @@ public class Portal implements Parcelable {
         dest.writeDouble(mLongitude);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Portal)) {
+            return false;
+        }
+        Portal other = (Portal) obj;
+        return mName == other.getName() && mLatitude == other.getLatitude() && mLongitude == other.getLongitude();
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + (mName == null ? 0 : mName.hashCode());
+        hash = 31 * hash + (int) (Double.doubleToLongBits(mLatitude));
+        hash = 31 * hash + (int) (Double.doubleToLongBits(mLongitude));
+        return hash;
+    }
+
 }
