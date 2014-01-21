@@ -10,11 +10,13 @@
     <string name="clear_notifications">Clear notifications</string>
     <string name="hack">Hack</string>
     <string name="mark_hacked">Mark hacked</string>
-    <string name="burned_out">Burned out</string>
+    <string name="mark_burned_out">Mark burned out</string>
     <string name="reset">Reset</string>
     <string name="reset_status">Reset status</string>
     <string name="pin_unpin">(Un)pin</string>
     <string name="pin_notification">Pin notification</string>
     <string name="unpin_notification">Unpin notification</string>
+    <string name="enable_resonator_buzzer">Enable resonator buzzer</string>
+    <string name="disable_resonator_buzzer">Disable resonator buzzer</string>
 
 </resources>

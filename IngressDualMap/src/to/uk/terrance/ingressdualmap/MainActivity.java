@@ -202,9 +202,10 @@ public class MainActivity extends Activity {
                 .setTitle(portal.getName())
                 .setItems(new String[]{
                     getString(R.string.mark_hacked),
-                    getString(R.string.burned_out),
+                    getString(R.string.mark_burned_out),
                     getString(R.string.reset_status),
-                    getString(portal.isPinned() ? R.string.unpin_notification : R.string.pin_notification)
+                    getString(portal.isPinned() ? R.string.unpin_notification : R.string.pin_notification),
+                    getString(portal.isResoBuzz() ? R.string.disable_resonator_buzzer : R.string.enable_resonator_buzzer)
                 }, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -220,6 +221,9 @@ public class MainActivity extends Activity {
                                 break;
                             case 3:
                                 pinPortal(i, portal);
+                                break;
+                            case 4:
+                                resoBuzzPortal(i, portal);
                                 break;
                         }
                         dialog.dismiss();
@@ -293,6 +297,17 @@ public class MainActivity extends Activity {
         portal.setPinned(!portal.isPinned());
         Toast.makeText(this, (portal.isPinned() ? "P" : "Unp") + "inned " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
         LocationService.notifyPortal(this, i, (portal.getDistance() <= 50 || portal.isPinned()));
+    }
+
+    public void resoBuzzPortal(int i, Portal portal) {
+        // Toggle resonator buzzing (vibrate when at optimum resonator distance, 35-40m)
+        portal.setResoBuzz(!portal.isResoBuzz());
+        if (portal.isResoBuzz()) {
+            Toast.makeText(this, "Resonator buzz enabled.  Will vibrate at 35-40m from portal.", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(this, "Resonator buzz disabled.", Toast.LENGTH_SHORT).show();
+        }
+        LocationService.notifyPortal(this, i, true);
     }
 
 }

@@ -14,6 +14,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.util.Log;
 
 import android.support.v4.app.NotificationCompat;
@@ -29,6 +30,7 @@ public class LocationService extends Service {
     private boolean mRunning = false;
     private static LocationManager mLocationManager;
     private static NotificationManager mNotificationManager;
+    private static Vibrator mVibrator;
     private static ArrayList<Portal> mPortals = new ArrayList<Portal>();
     private UpdateThread mUpdateThread;
 
@@ -95,10 +97,15 @@ public class LocationService extends Service {
             Log.d(Utils.TAG, "Update thread started.");
             try {
                 while (mGo) {
-                    // Update all notifications
                     for (int i = 0; i < mPortals.size(); i++) {
                         Portal portal = mPortals.get(i);
-                        notifyPortal(mContext, i, (portal.getDistance() <= 50 || portal.isPinned()));
+                        Float distance = portal.getDistance();
+                        // Update notifications
+                        notifyPortal(mContext, i, (distance <= 50 || portal.isPinned()));
+                        // Handle resonator buzzer
+                        if (distance >= 35 && distance <= 40) {
+                            mVibrator.vibrate(new long[]{0, 100, 100, 100}, -1);
+                        }
                     }
                     // Wait a bit
                     sleep(500);
@@ -176,8 +183,9 @@ public class LocationService extends Service {
                 }
             }
             // Show notification
+            String icons = (portal.isPinned() ? "\uD83D\uDCCC" : "") + (portal.isResoBuzz() ? "\uD83D\uDD14" : "");
             Notification notif = portal.getNotificationBuilder()
-                .setContentTitle((portal.isPinned() ? "\uD83D\uDCCC " : "") + portal.getName())
+                .setContentTitle((icons.length() > 0 ? icons + " " : "") + portal.getName())
                 .setContentText(text).build();
             mNotificationManager.notify(i, notif);
         } else {
@@ -268,6 +276,9 @@ public class LocationService extends Service {
         }
         if (mNotificationManager == null) {
             mNotificationManager = (NotificationManager) context.getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        }
+        if (mVibrator == null) {
+            mVibrator = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
         }
     }
 

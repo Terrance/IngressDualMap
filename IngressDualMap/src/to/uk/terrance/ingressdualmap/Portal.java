@@ -15,6 +15,7 @@ public class Portal implements Parcelable {
     private int mHacksRemaining;
     private float mDistance = Float.MAX_VALUE;
     private boolean mPinned = false;
+    private boolean mResoBuzz = false;
     private Builder mNotificationBuilder = null;
 
     private Calendar mHackReset = null;
@@ -62,6 +63,12 @@ public class Portal implements Parcelable {
     }
     public void setPinned(boolean pinned) {
         mPinned = pinned;
+    }
+    public boolean isResoBuzz() {
+        return mResoBuzz;
+    }
+    public void setResoBuzz(boolean resoBuzz) {
+        mResoBuzz = resoBuzz;
     }
     public Builder getNotificationBuilder() {
         return mNotificationBuilder;
