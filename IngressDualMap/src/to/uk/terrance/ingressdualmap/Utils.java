@@ -2,8 +2,9 @@ package to.uk.terrance.ingressdualmap;
 
 public class Utils {
 
-    public static final String TAG = "IngressDualMap";
-    public static final String PACKAGE = "to.uk.terrance.ingressdualmap";
+    public static final String APP_TAG = "IngressDualMap";
+    public static final String APP_PACKAGE = "to.uk.terrance.ingressdualmap";
+    public static final String URL_LISTS = "http://terrance.uk.to/labs/idm/lists";
 
     public static String plural(int count) {
         return count == 1 ? "" : "s";

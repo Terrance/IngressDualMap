@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
 
     private boolean mFromNotif = false;
     private boolean mBound = false;
-    private AlertDialog mMainMenu, mImportList, mPortalMenu;
+    private AlertDialog mMainMenu, mImportLists, mDownloadLists, mPortalMenu;
     private NumberPickerDialog mKeyCount;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
@@ -39,7 +39,7 @@ public class MainActivity extends Activity {
         super.onResume();
         String action = getIntent().getAction();
         // Portal notification action (wait for service)
-        if (action.startsWith(Utils.PACKAGE)) {
+        if (action.startsWith(Utils.APP_PACKAGE)) {
             mFromNotif = true;
             hideAll();
         // Main menu (show, refresh on service connect)
@@ -141,37 +141,8 @@ public class MainActivity extends Activity {
 
     public void showMainMenu() {
         hideAll();
-        mMainMenu = new AlertDialog.Builder(this)
+        AlertDialog.Builder menuBuilder = new AlertDialog.Builder(this)
             .setTitle(getString(R.string.app_name) + " | " + getString(isRunning() ? R.string.started : R.string.stopped))
-            .setItems(new String[]{
-                getString(isRunning() ? R.string.stop_service : R.string.start_service),
-                getString(isRunning() ? R.string.import_portal_lists : R.string.clear_notifications)
-            }, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    switch (which) {
-                        case 0:
-                            Intent intent = new Intent(getApplicationContext(), LocationService.class);
-                            intent.addCategory(Utils.TAG);
-                            if (isRunning()) {
-                                Toast.makeText(MainActivity.this, "Service stopped!", Toast.LENGTH_LONG).show();
-                                stopService(intent);
-                            } else {
-                                Toast.makeText(MainActivity.this, "Service started!", Toast.LENGTH_LONG).show();
-                                startService(intent);
-                            }
-                            break;
-                        case 1:
-                            if (isRunning()) {
-                                showImportList();
-                            } else {
-                                LocationService.clearNotifs(MainActivity.this);
-                                showMainMenu();
-                            }
-                            break;
-                    }
-                }
-            })
             .setOnKeyListener(new Dialog.OnKeyListener() {
                 @Override
                 public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
@@ -181,8 +152,54 @@ public class MainActivity extends Activity {
                     }
                     return false;
                 }
-            })
-            .create();
+            });
+        if (isRunning()) {
+            menuBuilder.setItems(new String[]{
+                    getString(R.string.stop_service),
+                    getString(R.string.import_portal_lists)
+                }, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                Intent intent = new Intent(getApplicationContext(), LocationService.class);
+                                intent.addCategory(Utils.APP_TAG);
+                                Toast.makeText(MainActivity.this, "Service stopped!", Toast.LENGTH_LONG).show();
+                                stopService(intent);
+                                break;
+                            case 1:
+                                showImportLists();
+                                break;
+                        }
+                    }
+                });
+        } else {
+            menuBuilder.setItems(new String[]{
+                    getString(R.string.start_service),
+                    getString(R.string.download_portal_lists),
+                    getString(R.string.clear_notifications)
+                }, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                Intent intent = new Intent(getApplicationContext(), LocationService.class);
+                                intent.addCategory(Utils.APP_TAG);
+                                Toast.makeText(MainActivity.this, "Service started!", Toast.LENGTH_LONG).show();
+                                startService(intent);
+                                break;
+                            case 1:
+                                showQueryLists();
+                                break;
+                            case 2:
+                                LocationService.clearNotifs(MainActivity.this);
+                                showMainMenu();
+                                break;
+                        }
+                    }
+                });
+        }
+        mMainMenu = menuBuilder.create();
         mMainMenu.show();
     }
 
@@ -193,7 +210,7 @@ public class MainActivity extends Activity {
         }
     }
 
-    public void showImportList() {
+    public void showImportLists() {
         hideAll();
         final File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
         if (!folder.exists()) {
@@ -201,9 +218,11 @@ public class MainActivity extends Activity {
         }
         File[] files = folder.listFiles();
         final ArrayList<File> filteredFiles = new ArrayList<File>();
+        Log.d(Utils.APP_TAG, "Searching for local list files...");
         for (File file : files) {
             String name = file.getName();
-            if (name.substring(name.length() - 4) != ".log") {
+            if (!name.substring(name.length() - 4).equals(".log")) {
+                Log.d(Utils.APP_TAG, "Found " + name + ".");
                 filteredFiles.add(file);
             }
         }
@@ -213,7 +232,7 @@ public class MainActivity extends Activity {
         for (int i = 0; i < size; i++) {
             filteredNames[i] = filteredFiles.get(i).getName();
         }
-        mImportList = new AlertDialog.Builder(this)
+        mImportLists = new AlertDialog.Builder(this)
             .setTitle(getString(R.string.import_portal_lists))
             .setMultiChoiceItems(filteredNames, checked, new DialogInterface.OnMultiChoiceClickListener() {
                 @Override
@@ -245,8 +264,9 @@ public class MainActivity extends Activity {
                         progress.show();
                         (new PortalStore.ImportFilesTask(selectedFiles)).execute(new PortalStore.ImportListener() {
                             @Override
-                            public void onImportProgress(String fileName) {
+                            public void onImportProgress(String fileName, int percent) {
                                 progress.setMessage(fileName);
+                                progress.setProgress(percent);
                             }
                             @Override
                             public void onImportFinish(boolean success, ArrayList<Portal> portals) {
@@ -278,23 +298,117 @@ public class MainActivity extends Activity {
                 }
             })
             .create();
-        mImportList.show();
+        mImportLists.show();
     }
 
-    public void hideImportList() {
-        if (mImportList != null) {
-            mImportList.cancel();
-            mImportList = null;
+    public void hideImportLists() {
+        if (mImportLists != null) {
+            mImportLists.cancel();
+            mImportLists = null;
+        }
+    }
+
+    public void showQueryLists() {
+        hideAll();
+        final ProgressDialog progress = new ProgressDialog(MainActivity.this);
+        progress.setTitle(getString(R.string.download_portal_lists));
+        progress.setMessage("Checking available files...");
+        progress.setCancelable(false);
+        progress.show();
+        (new PortalStore.QueryFilesTask()).execute(new PortalStore.QueryListener() {
+            @Override
+            public void onQueryFinish(boolean success, final String[] files) {
+                if (success) {
+                    final boolean[] checked = new boolean[files.length];
+                    mDownloadLists = new AlertDialog.Builder(MainActivity.this)
+                        .setTitle(getString(R.string.download_portal_lists))
+                        .setMultiChoiceItems(files, checked, new DialogInterface.OnMultiChoiceClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                                checked[which] = isChecked;
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new AlertDialog.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.cancel();
+                                showMainMenu();
+                            }
+                        })
+                        .setPositiveButton(R.string.download_lists, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                ArrayList<String> selectedFiles = new ArrayList<String>();
+                                for (int i = 0; i < files.length; i++) {
+                                    if (checked[i]) {
+                                        selectedFiles.add(files[i]);
+                                    }
+                                }
+                                if (selectedFiles.size() > 0) {
+                                    final ProgressDialog progress = new ProgressDialog(MainActivity.this);
+                                    progress.setTitle(getString(R.string.download_portal_lists));
+                                    progress.setMessage("Downloading lists...");
+                                    progress.setCancelable(false);
+                                    progress.show();
+                                    (new PortalStore.DownloadFilesTask(selectedFiles)).execute(new PortalStore.DownloadListener() {
+                                        @Override
+                                        public void onDownloadProgress(String fileName, int percent) {
+                                            progress.setMessage(fileName);
+                                            progress.setProgress(percent);
+                                        }
+                                        @Override
+                                        public void onDownloadFinish(boolean success) {
+                                            if (success) {
+                                                Toast.makeText(MainActivity.this, "The portal lists were downloaded successfully.", Toast.LENGTH_SHORT).show();
+                                            } else {
+                                                Toast.makeText(MainActivity.this, "Errors occurred whilst downloading the portal lists.", Toast.LENGTH_LONG).show();
+                                            }
+                                            progress.dismiss();
+                                            showMainMenu();
+                                        }
+                                    });
+                                } else {
+                                    Toast.makeText(MainActivity.this, "No files were selected.", Toast.LENGTH_SHORT).show();
+                                    showMainMenu();
+                                }
+                            }
+                        })
+                        .setOnKeyListener(new Dialog.OnKeyListener() {
+                            @Override
+                            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                                    dialog.cancel();
+                                    finish();
+                                }
+                                return false;
+                            }
+                        })
+                        .create();
+                    mDownloadLists.show();
+                    progress.dismiss();
+                } else {
+                    progress.dismiss();
+                    Toast.makeText(MainActivity.this, "Unable to query for available lists.\nCheck your connection and try again.", Toast.LENGTH_LONG).show();
+                    showMainMenu();
+                }
+            }
+        });
+    }
+
+    public void hideDownloadLists() {
+        if (mDownloadLists != null) {
+            mDownloadLists.cancel();
+            mDownloadLists = null;
         }
     }
 
     public void showPortalMenu() {
         hideAll();
-        String[] params = getIntent().getAction().substring(Utils.PACKAGE.length() + 1).split("\\.");
+        String[] params = getIntent().getAction().substring(Utils.APP_PACKAGE.length() + 1).split("\\.");
         String action = params[0];
         final int i = Integer.valueOf(params[1]);
         final Portal portal = getPortal(i);
-        Log.d(Utils.TAG, portal.toString());
+        Log.d(Utils.APP_TAG, portal.toString());
         if (action.equals("opts")) {
             mPortalMenu = new AlertDialog.Builder(this)
                 .setTitle(portal.getName())
@@ -412,7 +526,7 @@ public class MainActivity extends Activity {
 
     public void hideAll() {
         hideMainMenu();
-        hideImportList();
+        hideImportLists();
         hidePortalMenu();
         hideKeyCount();
     }

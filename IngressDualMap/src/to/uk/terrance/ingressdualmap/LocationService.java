@@ -3,7 +3,6 @@ package to.uk.terrance.ingressdualmap;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -18,6 +17,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.Vibrator;
 import android.util.Log;
+
 import android.support.v4.app.NotificationCompat;
 
 public class LocationService extends Service {
@@ -44,13 +44,13 @@ public class LocationService extends Service {
     private class IDMLocationListener implements LocationListener {
 
         public IDMLocationListener(String provider) {
-            Log.d(Utils.TAG, "Initialized " + provider + " provider.");
+            Log.d(Utils.APP_TAG, "Initialized " + provider + " provider.");
         }
 
         @Override
         public void onLocationChanged(Location location) {
             // New location received
-            Log.d(Utils.TAG, "Location update: " + location.getLatitude() + ", " + location.getLongitude());
+            Log.d(Utils.APP_TAG, "Location update: " + location.getLatitude() + ", " + location.getLongitude());
             mLastLocation = location;
             // Refresh distances to each portal
             for (int i = 0; i < mPortals.size(); i++) {
@@ -64,24 +64,23 @@ public class LocationService extends Service {
 
         @Override
         public void onProviderDisabled(String provider) {
-            Log.i(Utils.TAG, "Provider disabled for " + provider + ".");
+            Log.i(Utils.APP_TAG, "Provider disabled for " + provider + ".");
         }
 
         @Override
         public void onProviderEnabled(String provider) {
-            Log.i(Utils.TAG, "Provider enabled for " + provider + ".");
+            Log.i(Utils.APP_TAG, "Provider enabled for " + provider + ".");
         }
 
         @Override
         public void onStatusChanged(String provider, int status, Bundle extras) {
-            Log.d(Utils.TAG, "Provider status change for " + provider + ": " + status);
+            Log.d(Utils.APP_TAG, "Provider status change for " + provider + ": " + status);
         }
 
     }
 
     private class UpdateThread extends Thread {
 
-        private Context mContext = null;
         private boolean mGo = true;
 
         public void end() {
@@ -89,21 +88,16 @@ public class LocationService extends Service {
             mGo = false;
         }
 
-        public UpdateThread(Context context) {
-            mContext = context;
-        }
-
         @Override
         public void run() {
-            Log.d(Utils.TAG, "Update thread started.");
+            Log.d(Utils.APP_TAG, "Update thread started.");
             try {
                 while (mGo) {
-                    Log.d(Utils.TAG, "" + mPortals.size());
                     for (int i = 0; i < mPortals.size(); i++) {
                         Portal portal = mPortals.get(i);
                         Float distance = portal.getDistance();
                         // Update notifications
-                        notifyPortal(mContext, i, (distance <= 50 || portal.isPinned()));
+                        notifyPortal(i, (distance <= 50 || portal.isPinned()));
                         // Handle resonator buzzer
                         if (portal.isResoBuzz() && distance >= 35 && distance <= 40) {
                             mVibrator.vibrate(new long[]{0, 100, 100, 100}, -1);
@@ -113,7 +107,7 @@ public class LocationService extends Service {
                     sleep(500);
                 }
             } catch (InterruptedException e) {
-                Log.d(Utils.TAG, "Update thread interrupted.");
+                Log.d(Utils.APP_TAG, "Update thread interrupted.");
             }
         }
 
@@ -143,28 +137,28 @@ public class LocationService extends Service {
 
     }
 
-    public static void notifyPortal(Context context, int i, boolean show) {
+    public void notifyPortal(int i, boolean show) {
         if (show) {
             Portal portal = mPortals.get(i);
             // Notification not yet created (generated as needed)
             if (portal.getNotificationBuilder() == null) {
                 // Show menu on click
-                Intent optsIntent = new Intent(context, MainActivity.class);
-                optsIntent.setAction(Utils.PACKAGE + ".opts." + i);
-                NotificationCompat.Builder notif = new NotificationCompat.Builder(context).setOngoing(true)
+                Intent optsIntent = new Intent(this, MainActivity.class);
+                optsIntent.setAction(Utils.APP_PACKAGE + ".opts." + i);
+                NotificationCompat.Builder notif = new NotificationCompat.Builder(this).setOngoing(true)
                     .setSmallIcon(R.drawable.ic_logo)
-                    .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_launcher))
-                    .setContentIntent(PendingIntent.getActivity(context, 0, optsIntent, 0));
+                    .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_launcher))
+                    .setContentIntent(PendingIntent.getActivity(this, 0, optsIntent, 0));
                 // Quick access notification actions
                 Action[] actions = new Action[]{
-                    new Action(context.getString(R.string.hack), MainActivity.ACTION_HACK, R.drawable.ic_hack),
-                    new Action(context.getString(R.string.reset), MainActivity.ACTION_RESET, R.drawable.ic_reset),
-                    new Action(context.getString(R.string.pin), MainActivity.ACTION_PIN, R.drawable.ic_pin)
+                    new Action(getString(R.string.hack), MainActivity.ACTION_HACK, R.drawable.ic_hack),
+                    new Action(getString(R.string.reset), MainActivity.ACTION_RESET, R.drawable.ic_reset),
+                    new Action(getString(R.string.pin), MainActivity.ACTION_PIN, R.drawable.ic_pin)
                 };
                 for (Action action : actions) {
-                    Intent actionIntent = new Intent(context, MainActivity.class);
-                    actionIntent.setAction(Utils.PACKAGE + "." + action.getAction() + "." + i);
-                    notif.addAction(action.getDrawable(), action.getLabel(), PendingIntent.getActivity(context, 0, actionIntent, 0));
+                    Intent actionIntent = new Intent(this, MainActivity.class);
+                    actionIntent.setAction(Utils.APP_PACKAGE + "." + action.getAction() + "." + i);
+                    notif.addAction(action.getDrawable(), action.getLabel(), PendingIntent.getActivity(this, 0, actionIntent, 0));
                 }
                 portal.setNotificationBuilder(notif);
             }
@@ -232,51 +226,53 @@ public class LocationService extends Service {
         }
         @Override
         public void updatePortal(int i, Portal portal) {
+            // Recycle the notification
+            portal.setNotificationBuilder(mPortals.get(i).getNotificationBuilder());
             mPortals.set(i, portal);
         }
         @Override
         public void notifyPortal(int i) throws RemoteException {
             Portal portal = mPortals.get(i);
-            LocationService.notifyPortal(LocationService.this, i, portal.getDistance() <= 50 || portal.isPinned());
+            LocationService.this.notifyPortal(i, portal.getDistance() <= 50 || portal.isPinned());
         }
     };
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(Utils.TAG, "Service start command called!");
+        Log.d(Utils.APP_TAG, "Service start command called!");
         super.onStartCommand(intent, flags, startId);       
         return START_STICKY;
     }
 
     @Override
     public void onCreate() {
-        Log.i(Utils.TAG, "Starting location service...");
+        Log.i(Utils.APP_TAG, "Starting location service...");
         initApp(this);
         // Start notification updater
-        mUpdateThread = new UpdateThread(this);
+        mUpdateThread = new UpdateThread();
         mUpdateThread.start();
         // Start location updates
         try {
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListeners[0]);
         } catch (java.lang.SecurityException e) {
-            Log.e(Utils.TAG, "GPS location permission unavailable.", e);
+            Log.e(Utils.APP_TAG, "GPS location permission unavailable.", e);
         } catch (IllegalArgumentException e) {
-            Log.w(Utils.TAG, "GPS location provider unavailable.");
+            Log.w(Utils.APP_TAG, "GPS location provider unavailable.");
         }
         try {
             mLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, mLocationListeners[1]);
         } catch (java.lang.SecurityException e) {
-            Log.e(Utils.TAG, "Network location permission unavailable.", e);
+            Log.e(Utils.APP_TAG, "Network location permission unavailable.", e);
         } catch (IllegalArgumentException e) {
-            Log.w(Utils.TAG, "Network location provider unavailable.");
+            Log.w(Utils.APP_TAG, "Network location provider unavailable.");
         }
         mRunning = true;
-        Log.i(Utils.TAG, "Service is now running!");
+        Log.i(Utils.APP_TAG, "Service is now running!");
     }
 
     @Override
     public void onDestroy() {
-        Log.i(Utils.TAG, "Stopping location service...");
+        Log.i(Utils.APP_TAG, "Stopping location service...");
         initApp(this);
         // Stop notification updater
         if (mUpdateThread != null) {
@@ -290,7 +286,7 @@ public class LocationService extends Service {
         // Clear all notifications
         clearNotifs(this);
         mRunning = false;
-        Log.i(Utils.TAG, "Service is no longer running!");
+        Log.i(Utils.APP_TAG, "Service is no longer running!");
     }
 
     public static void initApp(Context context) {

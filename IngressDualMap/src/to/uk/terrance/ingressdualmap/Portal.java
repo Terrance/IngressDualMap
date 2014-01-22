@@ -116,6 +116,7 @@ public class Portal implements Parcelable {
         }
     }
     public void setBurnedOut() {
+        mHacksRemaining = 0;
         mBurnoutReset = Calendar.getInstance();
         mBurnoutReset.set(Calendar.HOUR, mBurnoutReset.get(Calendar.HOUR) + 4);
     }
