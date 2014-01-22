@@ -9,9 +9,15 @@ import android.support.v4.app.NotificationCompat.Builder;
 
 public class Portal implements Parcelable {
 
+    public static final int ALIGN_UNDEFINED = -1;
+    public static final int ALIGN_NEUTRAL = 0;
+    public static final int ALIGN_RESISTANCE = 1;
+    public static final int ALIGN_ENLIGHTENED = 2;
+
     private String mName;
     private double mLatitude;
     private double mLongitude;
+    private int mAlignment;
     private int mKeys;
     private int mHacksRemaining;
     private float mDistance = Float.MAX_VALUE;
@@ -24,9 +30,11 @@ public class Portal implements Parcelable {
 
     public Portal(String name, double latitude, double longitude) {
         mName = name;
-        mHacksRemaining = 4;
         mLatitude = latitude;
         mLongitude = longitude;
+        mAlignment = -1;
+        mKeys = 0;
+        mHacksRemaining = 4;
     }
 
     public String getName() {
@@ -47,11 +55,17 @@ public class Portal implements Parcelable {
     public void setLongitude(double longitude) {
         mLongitude = longitude;
     }
-    public float getDistance() {
-        return mDistance;
+    public int getAlignment() {
+        return mAlignment;
     }
-    public void setDistance(float distance) {
-        mDistance = distance;
+    public void setAlignment(int alignment) {
+        mAlignment = alignment;
+    }
+    public int getKeys() {
+        return mKeys;
+    }
+    public void setKeys(int keys) {
+        mKeys = keys;
     }
     public int getHacksRemaining() {
         return mHacksRemaining;
@@ -59,11 +73,11 @@ public class Portal implements Parcelable {
     public void setHacksRemaining(int hacksRemaining) {
         mHacksRemaining = hacksRemaining;
     }
-    public int getKeys() {
-        return mKeys;
+    public float getDistance() {
+        return mDistance;
     }
-    public void setKeys(int keys) {
-        mKeys = keys;
+    public void setDistance(float distance) {
+        mDistance = distance;
     }
     public boolean isPinned() {
         return mPinned;
@@ -135,6 +149,7 @@ public class Portal implements Parcelable {
         mName = src.readString();
         mLatitude = src.readDouble();
         mLongitude = src.readDouble();
+        mAlignment = src.readInt();
         mKeys = src.readInt();
         mHacksRemaining = src.readInt();
         mDistance = src.readFloat();
@@ -171,6 +186,7 @@ public class Portal implements Parcelable {
         dest.writeString(mName);
         dest.writeDouble(mLatitude);
         dest.writeDouble(mLongitude);
+        dest.writeInt(mAlignment);
         dest.writeInt(mKeys);
         dest.writeInt(mHacksRemaining);
         dest.writeFloat(mDistance);

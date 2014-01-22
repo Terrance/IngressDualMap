@@ -17,12 +17,19 @@
     <string name="mark_burned_out">Mark burned out</string>
     <string name="reset">Reset</string>
     <string name="reset_status">Reset status</string>
-    <string name="edit_key_count">Edit key count</string>
+    <string name="set_key_count">Set key count</string>
+    <string name="set_alignment">Set alignment</string>
+    <string-array name="alignment">
+        <item>Undefined</item>
+	    <item>Neutral</item>
+	    <item>Resistance</item>
+	    <item>Enlightened</item>
+    </string-array>
     <string name="save">Save</string>
     <string name="pin">Pin</string>
     <string name="pin_notification">Pin notification</string>
     <string name="unpin_notification">Unpin notification</string>
-    <string name="enable_resonator_buzzer">Enable resonator buzzer</string>
-    <string name="disable_resonator_buzzer">Disable resonator buzzer</string>
+    <string name="enable_resonator_buzzer">Enable resonator buzz</string>
+    <string name="disable_resonator_buzzer">Disable resonator buzz</string>
 
 </resources>

@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
 
     private boolean mFromNotif = false;
     private boolean mBound = false;
-    private AlertDialog mMainMenu, mImportLists, mDownloadLists, mPortalMenu;
+    private AlertDialog mMainMenu, mImportLists, mDownloadLists, mPortalMenu, mAlignment;
     private NumberPickerDialog mKeyCount;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
@@ -416,7 +416,8 @@ public class MainActivity extends Activity {
                     getString(R.string.mark_hacked),
                     getString(R.string.mark_burned_out),
                     getString(R.string.reset_status),
-                    getString(R.string.edit_key_count),
+                    getString(R.string.set_alignment),
+                    getString(R.string.set_key_count),
                     getString(portal.isPinned() ? R.string.unpin_notification : R.string.pin_notification),
                     getString(portal.isResoBuzz() ? R.string.disable_resonator_buzzer : R.string.enable_resonator_buzzer)
                 }, new DialogInterface.OnClickListener() {
@@ -433,12 +434,15 @@ public class MainActivity extends Activity {
                                 resetPortal(i, portal);
                                 break;
                             case 3:
-                                showKeyCount(i, portal);
+                                showAlignment(i, portal);
                                 return;
                             case 4:
+                                showKeyCount(i, portal);
+                                return;
+                            case 5:
                                 pinPortal(i, portal);
                                 break;
-                            case 5:
+                            case 6:
                                 resoBuzzPortal(i, portal);
                                 break;
                         }
@@ -484,8 +488,51 @@ public class MainActivity extends Activity {
         }
     }
 
+    public void showAlignment(final int i, final Portal portal) {
+        final String[] alignments = getResources().getStringArray(R.array.alignment);
+        mAlignment = new AlertDialog.Builder(this)
+            .setTitle(R.string.set_alignment)
+            .setSingleChoiceItems(alignments, portal.getAlignment() + 1, null)
+            .setNegativeButton(R.string.cancel, new AlertDialog.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                    finish();
+                }
+            })
+            .setPositiveButton(R.string.save, new AlertDialog.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    portal.setAlignment(((AlertDialog) dialog).getListView().getCheckedItemPosition() - 1);
+                    updatePortal(i, portal);
+                    Toast.makeText(MainActivity.this, "Updated alignment to " + alignments[portal.getAlignment() + 1] + ".", Toast.LENGTH_LONG).show();
+                    dialog.dismiss();
+                    finish();
+                }
+            })
+            .setOnKeyListener(new Dialog.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.cancel();
+                        finish();
+                    }
+                    return false;
+                }
+            })
+            .create();
+        mAlignment.show();
+    }
+
+    public void hideAlignment() {
+        if (mAlignment != null) {
+            mAlignment.cancel();
+            mAlignment = null;
+        }
+    }
+
     public void showKeyCount(final int i, final Portal portal) {
-        mKeyCount = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.edit_key_count), null, null);
+        mKeyCount = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.set_key_count), null, null);
         mKeyCount.getNumberPicker().setRange(0, 99);
         mKeyCount.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.save), new DialogInterface.OnClickListener() {
             @Override
@@ -527,7 +574,9 @@ public class MainActivity extends Activity {
     public void hideAll() {
         hideMainMenu();
         hideImportLists();
+        hideDownloadLists();
         hidePortalMenu();
+        hideAlignment();
         hideKeyCount();
     }
 

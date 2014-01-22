@@ -192,6 +192,20 @@ public class LocationService extends Service {
             String icons = (portal.isPinned() ? "\uD83D\uDCCC" : "")
                          + (portal.getKeys() > 0 ? "\uD83D\uDD11" : "")
                          + (portal.isResoBuzz() ? "\uD83D\uDD14" : "");
+            if (icons.length() > 0 && portal.getAlignment() != Portal.ALIGN_UNDEFINED) {
+                icons += " ";
+            }
+            switch (portal.getAlignment()) {
+                case Portal.ALIGN_NEUTRAL:
+                    icons += "[N]";
+                    break;
+                case Portal.ALIGN_RESISTANCE:
+                    icons += "[R]";
+                    break;
+                case Portal.ALIGN_ENLIGHTENED:
+                    icons += "[E]";
+                    break;
+            }
             NotificationCompat.Builder builder = portal.getNotificationBuilder()
                 .setContentTitle((icons.length() > 0 ? icons + " " : "") + portal.getName())
                 .setContentText(text);
