@@ -21,13 +21,32 @@ import au.com.bytecode.opencsv.CSVReader;
 import com.goebl.david.Webb;
 import com.goebl.david.WebbException;
 
+/**
+ * Background tasks related to managing portal lists.
+ */
 public class PortalStore {
 
+    /**
+     * Callback for an {@link ImportFilesTask} instance.
+     */
     public static interface ImportListener {
+        /**
+         * Called at the start of importing each selected file.
+         * @param fileName The file currently being processed.
+         * @param percent A percentage of progress out of all files in the task. 
+         */
         void onImportProgress(String fileName, int percent);
+        /**
+         * Called once all files have been processed.
+         * @param success <code>True</code> if all files were imported successfully.
+         * @param portals A collection of all successfully imported portals. 
+         */
         void onImportFinish(boolean success, ArrayList<Portal> portals);
     }
 
+    /**
+     * A background task to import portals from their lists into the service.
+     */
     public static class ImportFilesTask extends AsyncTask<ImportListener, String, Void> {
 
         private ImportListener[] mListeners;
@@ -36,12 +55,16 @@ public class PortalStore {
         private ArrayList<Portal> mPortals = new ArrayList<Portal>();
         private boolean mSuccess = true;
 
+        /**
+         * A background task to import portals from their lists into the service.
+         * @param files An array of files to import portals from.
+         */
         public ImportFilesTask(ArrayList<File> files) {
             mFiles = files;
         }
 
         @Override
-        public Void doInBackground(ImportListener... listeners) {
+        protected Void doInBackground(ImportListener... listeners) {
             mListeners = listeners;
             for (mPos = 0; mPos < mFiles.size(); mPos++) {
                 File file = mFiles.get(mPos);
@@ -109,10 +132,16 @@ public class PortalStore {
 
     }
 
+    /**
+     * Callback for an {@link QueryFilesTask} instance.
+     */
     public static interface QueryListener {
         void onQueryFinish(boolean success, String[] files);
     }
 
+    /**
+     * A background task to query available portal lists from the server.
+     */
     public static class QueryFilesTask extends AsyncTask<QueryListener, Void, Void> {
 
         private QueryListener[] mListeners;
@@ -120,7 +149,7 @@ public class PortalStore {
         private boolean mSuccess = true;
 
         @Override
-        public Void doInBackground(QueryListener... listeners) {
+        protected Void doInBackground(QueryListener... listeners) {
             mListeners = listeners;
             Webb webb = Webb.create();
             webb.setBaseUri(Utils.URL_LISTS);
@@ -143,11 +172,17 @@ public class PortalStore {
 
     }
 
+    /**
+     * Callback for an {@link DownloadFilesTask} instance.
+     */
     public static interface DownloadListener {
         void onDownloadProgress(String fileName, int percent);
         void onDownloadFinish(boolean success);
     }
 
+    /**
+     * A background task to download portal lists from the server.
+     */
     public static class DownloadFilesTask extends AsyncTask<DownloadListener, String, Void> {
 
         private DownloadListener[] mListeners;
@@ -155,12 +190,16 @@ public class PortalStore {
         private int mPos = 0;
         private boolean mSuccess = true;
 
+        /**
+         * A background task to download portal lists from the server.
+         * @param files An array of file names to download.
+         */
         public DownloadFilesTask(ArrayList<String> files) {
             mFiles = files;
         }
 
         @Override
-        public Void doInBackground(DownloadListener... listeners) {
+        protected Void doInBackground(DownloadListener... listeners) {
             mListeners = listeners;
             Webb webb = Webb.create();
             webb.setBaseUri(Utils.URL_LISTS);

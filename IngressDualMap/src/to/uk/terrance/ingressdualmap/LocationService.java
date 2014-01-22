@@ -20,13 +20,12 @@ import android.util.Log;
 
 import android.support.v4.app.NotificationCompat;
 
+/** 
+ * Background service to manage displaying notifications for portals.
+ */
 public class LocationService extends Service {
 
     private static Location mLastLocation;
-
-    public static Location getLastLocation() {
-        return mLastLocation;
-    }
 
     private boolean mRunning = false;
     private static LocationManager mLocationManager;
@@ -36,7 +35,7 @@ public class LocationService extends Service {
     private UpdateThread mUpdateThread;
 
     // Two listeners, one for each type of location provider
-    IDMLocationListener[] mLocationListeners = new IDMLocationListener[] {
+    private IDMLocationListener[] mLocationListeners = new IDMLocationListener[] {
         new IDMLocationListener(LocationManager.GPS_PROVIDER),
         new IDMLocationListener(LocationManager.NETWORK_PROVIDER)
     };
@@ -79,12 +78,17 @@ public class LocationService extends Service {
 
     }
 
+    /**
+     * A thread to refresh notifications, toggle their visibility, and handle resonator buzz.
+     */
     private class UpdateThread extends Thread {
 
         private boolean mGo = true;
 
+        /**
+         * Stop the thread's main loop.
+         */
         public void end() {
-            // Stop the thread cleanly
             mGo = false;
         }
 
@@ -113,30 +117,53 @@ public class LocationService extends Service {
 
     }
 
+    /**
+     * Helper class to represent notification actions.
+     */
     private static class Action {
 
         private String mLabel;
         private String mAction;
         private int mDrawable;
 
+        /**
+         * Helper class to represent notification actions.
+         * @param label Text to display for the action.
+         * @param action Actual action to perform, passed to the intent.
+         * @param drawable Resource ID for an icon to display with the label.
+         */
         public Action(String label, String action, int drawable) {
             mLabel = label;
             mAction = action;
             mDrawable = drawable;
         }
 
+        /**
+         * @return The label of the notification action.
+         */
         public String getLabel() {
             return mLabel;
         }
+        /**
+         * @return The action string of the notification action.
+         */
         public String getAction() {
             return mAction;
         }
+        /**
+         * @return The drawable of the notification action.
+         */
         public int getDrawable() {
             return mDrawable;
         }
 
     }
 
+    /**
+     * Update the notification for the given portal.
+     * @param i The index of the portal to update.
+     * @param show <code>True</code> to show the notification in the drawer, <code>False</code> to hide.
+     */
     public void notifyPortal(int i, boolean show) {
         if (show) {
             Portal portal = mPortals.get(i);
@@ -216,6 +243,10 @@ public class LocationService extends Service {
         }
     }
 
+    /**
+     * Clear all notifications from the drawer.  If the service is running, active ones will reappear.
+     * @param context A {@link Context} to initialize the {@link NotificationManager} with.
+     */
     public static void clearNotifs(Context context) {
         initApp(context);
         mNotificationManager.cancelAll();
@@ -238,13 +269,11 @@ public class LocationService extends Service {
         public Portal getPortal(int i) {
             return mPortals.get(i);
         }
-        @Override
         public void updatePortal(int i, Portal portal) {
             // Recycle the notification
             portal.setNotificationBuilder(mPortals.get(i).getNotificationBuilder());
             mPortals.set(i, portal);
         }
-        @Override
         public void notifyPortal(int i) throws RemoteException {
             Portal portal = mPortals.get(i);
             LocationService.this.notifyPortal(i, portal.getDistance() <= 50 || portal.isPinned());
@@ -303,6 +332,10 @@ public class LocationService extends Service {
         Log.i(Utils.APP_TAG, "Service is no longer running!");
     }
 
+    /**
+     * Initialize the {@link LocationManager}, {@link NotificationManager} and {@link Vibrator} services.
+     * @param context A {@link Context} to initialize components with.
+     */
     public static void initApp(Context context) {
         if (mLocationManager == null) {
             mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);

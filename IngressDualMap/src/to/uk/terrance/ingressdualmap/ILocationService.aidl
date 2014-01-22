@@ -2,10 +2,33 @@ package to.uk.terrance.ingressdualmap;
 
 import to.uk.terrance.ingressdualmap.Portal;
 
+/**
+ * Methods available to activities for controlling the {@link LocationService}.
+ */
 interface ILocationService {
+    /**
+     * @return <code>True</code> if the server is currently running.
+     */
     boolean isRunning();
+    /**
+     * Replace all portals stored in the service with the given {@link List}.
+     * @param portals A replacement list of portals.
+     */
     void setPortals(in java.util.List<Portal> portals);
+    /**
+     * @param i The index of the portal to find.
+     * @return The portal, after being {@link Parcel}'d.
+     */
     Portal getPortal(int i);
+    /**
+     * Replace a portal in the service with an updated version.
+     * @param i The index of the portal to replace.
+     * @param portal The replacement portal (will be {@link Parcel}'d).
+     */
     void updatePortal(int i, in Portal portal);
+    /**
+     * Update and show the notification for the given portal if it is in range.
+     * @param i The index of the portal. 
+     */
     void notifyPortal(int i);
 }

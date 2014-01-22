@@ -20,11 +20,26 @@ import android.widget.Toast;
 
 import com.michaelnovakjr.numberpicker.NumberPickerDialog;
 
+/** 
+ * UI activity for the main and portal menus and options.
+ */
 public class MainActivity extends Activity {
 
+    /**
+     * Action to display all options.
+     */
     public static final String ACTION_OPTS = "opts";
+    /**
+     * Action to mark a given portal as hacked.
+     */
     public static final String ACTION_HACK = "hack";
+    /**
+     * Action to reset a given portal.
+     */
     public static final String ACTION_RESET = "reset";
+    /**
+     * Action to pin the notification of a given portal.
+     */
     public static final String ACTION_PIN = "pin";
 
     private boolean mFromNotif = false;
@@ -58,6 +73,10 @@ public class MainActivity extends Activity {
         disconnectService();
     }
 
+    /**
+     * Bind the {@link LocationService} to this activity, providing access to methods defined
+     * in the {@link ILocationService} binder.
+     */
     public void connectService() {
         // Connect to the service
         mConnection = new ServiceConnection() {
@@ -85,11 +104,17 @@ public class MainActivity extends Activity {
         mBound = bindService(new Intent(this, LocationService.class), mConnection, 0);
     }
 
+    /**
+     * Unbind the service when pausing or destroying the activity.
+     */
     public void disconnectService() {
         unbindService(mConnection);
         mBound = false;
     }
 
+    /**
+     * Wrapper for {@link ILocationService#isRunning} to handle service exceptions.
+     */
     public boolean isRunning() {
         try {
             // Test if the service is bound and running
@@ -99,6 +124,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Wrapper for {@link ILocationService#setPortals} to handle service exceptions.
+     */
     public void setPortals(ArrayList<Portal> portals) {
         if (mBound && mLocationService != null) {
             try {
@@ -108,6 +136,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Wrapper for {@link ILocationService#getPortal} to handle service exceptions.
+     */
     public Portal getPortal(int i) {
         if (mBound && mLocationService != null) {
             try {
@@ -121,6 +152,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Wrapper for {@link ILocationService#updatePortal} to handle service exceptions.
+     */
     public void updatePortal(int i, Portal portal) {
         if (mBound && mLocationService != null) {
             try {
@@ -130,6 +164,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Wrapper for {@link ILocationService#notifyPortal} to handle service exceptions.
+     */
     public void notifyPortal(int i) {
         if (mBound && mLocationService != null) {
             try {
@@ -139,6 +176,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Show an {@link AlertDialog} menu with the main options (start, stop, etc.).
+     */
     public void showMainMenu() {
         hideAll();
         AlertDialog.Builder menuBuilder = new AlertDialog.Builder(this)
@@ -203,6 +243,9 @@ public class MainActivity extends Activity {
         mMainMenu.show();
     }
 
+    /**
+     * Close the main menu dialog if open.
+     */
     public void hideMainMenu() {
         if (mMainMenu != null) {
             mMainMenu.cancel();
@@ -210,6 +253,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Show an {@link AlertDialog} menu for importing portal lists into the service.
+     */
     public void showImportLists() {
         hideAll();
         final File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
@@ -301,6 +347,9 @@ public class MainActivity extends Activity {
         mImportLists.show();
     }
 
+    /**
+     * Close the import lists dialog if open.
+     */
     public void hideImportLists() {
         if (mImportLists != null) {
             mImportLists.cancel();
@@ -308,6 +357,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Show an {@link AlertDialog} menu for downloading portal lists from the server.
+     */
     public void showQueryLists() {
         hideAll();
         final ProgressDialog progress = new ProgressDialog(MainActivity.this);
@@ -395,6 +447,9 @@ public class MainActivity extends Activity {
         });
     }
 
+    /**
+     * Close the download lists menu if open.
+     */
     public void hideDownloadLists() {
         if (mDownloadLists != null) {
             mDownloadLists.cancel();
@@ -402,6 +457,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Show an {@link AlertDialog} menu with all options relating to specific portals.
+     */
     public void showPortalMenu() {
         hideAll();
         String[] params = getIntent().getAction().substring(Utils.APP_PACKAGE.length() + 1).split("\\.");
@@ -481,6 +539,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Close the portal menu if open.
+     */
     public void hidePortalMenu() {
         if (mPortalMenu != null) {
             mPortalMenu.cancel();
@@ -488,6 +549,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Show an {@link AlertDialog} menu for setting a portal's alignment.
+     */
     public void showAlignment(final int i, final Portal portal) {
         final String[] alignments = getResources().getStringArray(R.array.alignment);
         mAlignment = new AlertDialog.Builder(this)
@@ -524,6 +588,9 @@ public class MainActivity extends Activity {
         mAlignment.show();
     }
 
+    /**
+     * Close the alignment menu if open.
+     */
     public void hideAlignment() {
         if (mAlignment != null) {
             mAlignment.cancel();
@@ -531,6 +598,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Show an {@link AlertDialog} menu for setting a portal's key count.
+     */
     public void showKeyCount(final int i, final Portal portal) {
         mKeyCount = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.set_key_count), null, null);
         mKeyCount.getNumberPicker().setRange(0, 99);
@@ -564,6 +634,9 @@ public class MainActivity extends Activity {
         mKeyCount.show();
     }
 
+    /**
+     * Close the key count menu if open.
+     */
     public void hideKeyCount() {
         if (mKeyCount != null) {
             mKeyCount.cancel();
@@ -571,6 +644,9 @@ public class MainActivity extends Activity {
         }
     }
 
+    /**
+     * Close any open menus or dialogs.
+     */
     public void hideAll() {
         hideMainMenu();
         hideImportLists();
@@ -580,6 +656,11 @@ public class MainActivity extends Activity {
         hideKeyCount();
     }
 
+    /**
+     * Mark a portal as hacked through the UI.
+     * @param i The index of the portal.
+     * @param portal The portal object.
+     */
     public void hackPortal(int i, Portal portal) {
         // Decrease hack count
         int hacks = portal.getHacksRemaining() - 1;
@@ -599,6 +680,11 @@ public class MainActivity extends Activity {
         notifyPortal(i);
     }
 
+    /**
+     * Mark a portal as burnt out through the UI.
+     * @param i The index of the portal.
+     * @param portal The portal object.
+     */
     public void burnOutPortal(int i, Portal portal) {
         // Burnt out, wait 4 hours
         portal.setBurnedOut();
@@ -607,6 +693,11 @@ public class MainActivity extends Activity {
         notifyPortal(i);
     }
 
+    /**
+     * Reset a portal through the UI.
+     * @param i The index of the portal.
+     * @param portal The portal object.
+     */
     public void resetPortal(int i, Portal portal) {
         // Clear any timers or hack counts
         portal.reset();
@@ -615,6 +706,11 @@ public class MainActivity extends Activity {
         notifyPortal(i);
     }
 
+    /**
+     * Pin a portal to the notification drawer through the UI.
+     * @param i The index of the portal.
+     * @param portal The portal object.
+     */
     public void pinPortal(int i, Portal portal) {
         // Toggle pinned notification (doesn't disappear when out of range)
         portal.setPinned(!portal.isPinned());
@@ -623,6 +719,11 @@ public class MainActivity extends Activity {
         notifyPortal(i);
     }
 
+    /**
+     * Toggle resonator buzz on a portal through the UI.
+     * @param i The index of the portal.
+     * @param portal The portal object.
+     */
     public void resoBuzzPortal(int i, Portal portal) {
         // Toggle resonator buzzing (vibrate when at optimum resonator distance, 35-40m)
         portal.setResoBuzz(!portal.isResoBuzz());

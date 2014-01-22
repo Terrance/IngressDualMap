@@ -1,7 +1,7 @@
 Introduction
 ------------
 
-Ingress Dual map is an app that runs alongside the official Ingress app, and shows notifications when portals are nearby.  These allow the tracking of distance, hack counts, cooldown times and burnout times, all from within the notification.
+Ingress Dual Map is an app that runs alongside the official Ingress app, and shows notifications when portals are nearby.  These allow the tracking of distance, hack counts, cooldown times and burnout times, all from within the notification.
 
 
 Adding portals
