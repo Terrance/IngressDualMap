@@ -1,12 +1,10 @@
 <resources>
 
     <!-- Base theme -->
-    <style name="AppBaseTheme" parent="Theme.AppCompat">
-        <!-- Backwards compatibility customizations -->
-    </style>
+    <style name="AppTheme" parent="Theme.AppCompat"/>
 
     <!-- Application theme -->
-    <style name="AppTheme" parent="AppBaseTheme">
+    <style name="DialogOnlyTheme" parent="AppTheme">
         <!-- Non-API-level customizations -->
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>

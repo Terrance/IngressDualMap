@@ -1,29 +1,32 @@
 package to.uk.terrance.ingressdualmap;
 
-import java.io.File;
-import java.util.ArrayList;
-
-import android.os.Environment;
-import android.os.IBinder;
-import android.os.RemoteException;
-import android.app.Activity;
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
+import android.os.Bundle;
+import android.os.IBinder;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
+
+import android.support.v4.app.Fragment;
+
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 
 import com.michaelnovakjr.numberpicker.NumberPickerDialog;
 
-/** 
- * UI activity for the main and portal menus and options.
+/**
+ * Main UI activity for enabling the service, downloading portal lists or editing setings.
  */
-public class MainActivity extends Activity {
+public class MainActivity extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
     /**
      * Action to display all options.
@@ -43,65 +46,103 @@ public class MainActivity extends Activity {
     public static final String ACTION_PIN = "pin";
 
     private boolean mFromNotif = false;
-    private boolean mBound = false;
-    private AlertDialog mMainMenu, mImportLists, mDownloadLists, mPortalMenu, mAlignment;
+    private boolean mInit = false;
+    private AlertDialog mPortalMenu, mAlignment;
     private NumberPickerDialog mKeyCount;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
+    private LocationServiceWrap mLocationServiceWrap = new LocationServiceWrap();
+    private Fragment[] mFragments;
+    private int mCurrentFragment;
 
     @Override
-    public void onResume() {
-        super.onResume();
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         String action = getIntent().getAction();
         // Portal notification action (wait for service)
         if (action.startsWith(Utils.APP_PACKAGE)) {
             mFromNotif = true;
-            hideAll();
-        // Main menu (show, refresh on service connect)
+        // Main app UI
         } else {
-            showMainMenu();
+            setTheme(R.style.AppTheme);
+            setContentView(R.layout.activity_second);
+            // Set up the action bar to show a dropdown list
+            final ActionBar actionBar = getSupportActionBar();
+            actionBar.setDisplayShowTitleEnabled(false);
+            actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_LIST);
+            // Specify a SpinnerAdapter to populate the dropdown list
+            ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                    getActionBarThemedContextCompat(), android.R.layout.simple_list_item_1,
+                    android.R.id.text1, getResources().getStringArray(R.array.actionbar_dropdown));
+            // Set up the dropdown list navigation in the action bar
+            actionBar.setListNavigationCallbacks(adapter, this);
+            // Initialise fragments
+            mFragments = new Fragment[]{new ServiceFragment(), new DownloadFragment(), new ImportFragment()};
+            for (Fragment fragment : mFragments) {
+                if (fragment instanceof ILocationServiceFragment) {
+                    ((ILocationServiceFragment) fragment).setServiceConnection(mLocationServiceWrap); 
+                }
+            }
         }
+        mInit = true;
         connectService();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!mInit) {
+            connectService();
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
+        // Close all open dialogs
         if (!mFromNotif) {
             hideAll();
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
         disconnectService();
     }
 
     /**
-     * Bind the {@link LocationService} to this activity, providing access to methods defined
-     * in the {@link ILocationService} binder.
+     * Bind the {@link LocationService} to this activity, providing access to {@link ILocationService} methods.
      */
     public void connectService() {
         // Connect to the service
         mConnection = new ServiceConnection() {
             public void onServiceConnected(ComponentName className, IBinder service) {
                 mLocationService = ILocationService.Stub.asInterface(service);
+                mLocationServiceWrap.set(mLocationService);
                 if (mFromNotif) {
                     showPortalMenu();
-                } else {
-                    showMainMenu();
+                } else if (mInit && mFragments[mCurrentFragment] instanceof ILocationServiceFragment) {
+                    ((ILocationServiceFragment) mFragments[mCurrentFragment]).onServiceConnected(); 
                 }
             }
             public void onServiceDisconnected(ComponentName className) {
                 mLocationService = null;
+                mLocationServiceWrap.set(null);
                 if (mFromNotif) {
                     // Lost connection, close
                     hideAll();
                     finish();
                 } else {
+                    if (mInit && mFragments[mCurrentFragment] instanceof ILocationServiceFragment) {
+                        ((ILocationServiceFragment) mFragments[mCurrentFragment]).onServiceDisconnected(); 
+                    }
                     // Reload service
-                    showMainMenu();
                     connectService();
                 }
             }
         };
-        mBound = bindService(new Intent(this, LocationService.class), mConnection, 0);
+        bindService(new Intent(this, LocationService.class), mConnection, 0);
     }
 
     /**
@@ -109,352 +150,37 @@ public class MainActivity extends Activity {
      */
     public void disconnectService() {
         unbindService(mConnection);
-        mBound = false;
     }
 
     /**
-     * Wrapper for {@link ILocationService#isRunning} to handle service exceptions.
+     * Backward-compatible version of {@link ActionBar#getThemedContext()} that simply returns the
+     * {@link android.app.Activity} if <code>getThemedContext</code> is unavailable.
      */
-    public boolean isRunning() {
-        try {
-            // Test if the service is bound and running
-            return mBound && mLocationService != null && mLocationService.isRunning();
-        } catch (RemoteException e) {
-            return false;
+    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
+    private Context getActionBarThemedContextCompat() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH ? getActionBar().getThemedContext() : this;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Bundle savedInstanceState) {
+        // Restore the previously serialized current dropdown position
+        if (savedInstanceState.containsKey("actionbar_selected")) {
+            getSupportActionBar().setSelectedNavigationItem(savedInstanceState.getInt("actionbar_selected"));
         }
     }
 
-    /**
-     * Wrapper for {@link ILocationService#setPortals} to handle service exceptions.
-     */
-    public void setPortals(ArrayList<Portal> portals) {
-        if (mBound && mLocationService != null) {
-            try {
-                // Update the service portal list
-                mLocationService.setPortals(portals);
-            } catch (RemoteException e) {}
-        }
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        // Serialize the current dropdown position
+        outState.putInt("actionbar_selected", getSupportActionBar().getSelectedNavigationIndex());
     }
 
-    /**
-     * Wrapper for {@link ILocationService#getPortal} to handle service exceptions.
-     */
-    public Portal getPortal(int i) {
-        if (mBound && mLocationService != null) {
-            try {
-                // Fetch a portal from the list
-                return mLocationService.getPortal(i);
-            } catch (RemoteException e) {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Wrapper for {@link ILocationService#updatePortal} to handle service exceptions.
-     */
-    public void updatePortal(int i, Portal portal) {
-        if (mBound && mLocationService != null) {
-            try {
-                // Update a portal in the service
-                mLocationService.updatePortal(i, portal);
-            } catch (RemoteException e) {}
-        }
-    }
-
-    /**
-     * Wrapper for {@link ILocationService#notifyPortal} to handle service exceptions.
-     */
-    public void notifyPortal(int i) {
-        if (mBound && mLocationService != null) {
-            try {
-                // Refresh the notification
-                mLocationService.notifyPortal(i);
-            } catch (RemoteException e) {}
-        }
-    }
-
-    /**
-     * Show an {@link AlertDialog} menu with the main options (start, stop, etc.).
-     */
-    public void showMainMenu() {
-        hideAll();
-        AlertDialog.Builder menuBuilder = new AlertDialog.Builder(this)
-            .setTitle(getString(R.string.app_name) + " | " + getString(isRunning() ? R.string.started : R.string.stopped))
-            .setOnKeyListener(new Dialog.OnKeyListener() {
-                @Override
-                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        dialog.cancel();
-                        finish();
-                    }
-                    return false;
-                }
-            });
-        if (isRunning()) {
-            menuBuilder.setItems(new String[]{
-                    getString(R.string.stop_service),
-                    getString(R.string.import_portal_lists)
-                }, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which) {
-                            case 0:
-                                Intent intent = new Intent(getApplicationContext(), LocationService.class);
-                                intent.addCategory(Utils.APP_TAG);
-                                Toast.makeText(MainActivity.this, "Service stopped!", Toast.LENGTH_LONG).show();
-                                stopService(intent);
-                                break;
-                            case 1:
-                                showImportLists();
-                                break;
-                        }
-                    }
-                });
-        } else {
-            menuBuilder.setItems(new String[]{
-                    getString(R.string.start_service),
-                    getString(R.string.download_portal_lists),
-                    getString(R.string.clear_notifications)
-                }, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which) {
-                            case 0:
-                                Intent intent = new Intent(getApplicationContext(), LocationService.class);
-                                intent.addCategory(Utils.APP_TAG);
-                                Toast.makeText(MainActivity.this, "Service started!", Toast.LENGTH_LONG).show();
-                                startService(intent);
-                                break;
-                            case 1:
-                                showQueryLists();
-                                break;
-                            case 2:
-                                LocationService.clearNotifs(MainActivity.this);
-                                showMainMenu();
-                                break;
-                        }
-                    }
-                });
-        }
-        mMainMenu = menuBuilder.create();
-        mMainMenu.show();
-    }
-
-    /**
-     * Close the main menu dialog if open.
-     */
-    public void hideMainMenu() {
-        if (mMainMenu != null) {
-            mMainMenu.cancel();
-            mMainMenu = null;
-        }
-    }
-
-    /**
-     * Show an {@link AlertDialog} menu for importing portal lists into the service.
-     */
-    public void showImportLists() {
-        hideAll();
-        final File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-        File[] files = folder.listFiles();
-        final ArrayList<File> filteredFiles = new ArrayList<File>();
-        Log.d(Utils.APP_TAG, "Searching for local list files...");
-        for (File file : files) {
-            String name = file.getName();
-            if (!name.substring(name.length() - 4).equals(".log")) {
-                Log.d(Utils.APP_TAG, "Found " + name + ".");
-                filteredFiles.add(file);
-            }
-        }
-        final int size = filteredFiles.size();
-        final boolean[] checked = new boolean[size];
-        String[] filteredNames = new String[size];
-        for (int i = 0; i < size; i++) {
-            filteredNames[i] = filteredFiles.get(i).getName();
-        }
-        mImportLists = new AlertDialog.Builder(this)
-            .setTitle(getString(R.string.import_portal_lists))
-            .setMultiChoiceItems(filteredNames, checked, new DialogInterface.OnMultiChoiceClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                    checked[which] = isChecked;
-                }
-            })
-            .setNegativeButton(R.string.cancel, new AlertDialog.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    dialog.cancel();
-                    showMainMenu();
-                }
-            })
-            .setPositiveButton(R.string.import_lists, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    ArrayList<File> selectedFiles = new ArrayList<File>();
-                    for (int i = 0; i < size; i++) {
-                        if (checked[i]) {
-                            selectedFiles.add(filteredFiles.get(i));
-                        }
-                    }
-                    if (selectedFiles.size() > 0) {
-                        final ProgressDialog progress = new ProgressDialog(MainActivity.this);
-                        progress.setTitle(getString(R.string.import_portal_lists));
-                        progress.setMessage("Searching for files...");
-                        progress.setCancelable(false);
-                        progress.show();
-                        (new PortalStore.ImportFilesTask(selectedFiles)).execute(new PortalStore.ImportListener() {
-                            @Override
-                            public void onImportProgress(String fileName, int percent) {
-                                progress.setMessage(fileName);
-                                progress.setProgress(percent);
-                            }
-                            @Override
-                            public void onImportFinish(boolean success, ArrayList<Portal> portals) {
-                                setPortals(portals);
-                                LocationService.clearNotifs(MainActivity.this);
-                                if (success) {
-                                    Toast.makeText(MainActivity.this, "Portal lists imported successfully.", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(MainActivity.this, "Errors occurred whilst importing portal lists.\nCheck the log files for more information.", Toast.LENGTH_LONG).show();
-                                }
-                                progress.dismiss();
-                                showMainMenu();
-                            }
-                        });
-                    } else {
-                        Toast.makeText(MainActivity.this, "No files were selected.", Toast.LENGTH_SHORT).show();
-                        showMainMenu();
-                    }
-                }
-            })
-            .setOnKeyListener(new Dialog.OnKeyListener() {
-                @Override
-                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                    if (keyCode == KeyEvent.KEYCODE_BACK) {
-                        dialog.cancel();
-                        finish();
-                    }
-                    return false;
-                }
-            })
-            .create();
-        mImportLists.show();
-    }
-
-    /**
-     * Close the import lists dialog if open.
-     */
-    public void hideImportLists() {
-        if (mImportLists != null) {
-            mImportLists.cancel();
-            mImportLists = null;
-        }
-    }
-
-    /**
-     * Show an {@link AlertDialog} menu for downloading portal lists from the server.
-     */
-    public void showQueryLists() {
-        hideAll();
-        final ProgressDialog progress = new ProgressDialog(MainActivity.this);
-        progress.setTitle(getString(R.string.download_portal_lists));
-        progress.setMessage("Checking available files...");
-        progress.setCancelable(false);
-        progress.show();
-        (new PortalStore.QueryFilesTask()).execute(new PortalStore.QueryListener() {
-            @Override
-            public void onQueryFinish(boolean success, final String[] files) {
-                if (success) {
-                    final boolean[] checked = new boolean[files.length];
-                    mDownloadLists = new AlertDialog.Builder(MainActivity.this)
-                        .setTitle(getString(R.string.download_portal_lists))
-                        .setMultiChoiceItems(files, checked, new DialogInterface.OnMultiChoiceClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                                checked[which] = isChecked;
-                            }
-                        })
-                        .setNegativeButton(R.string.cancel, new AlertDialog.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.cancel();
-                                showMainMenu();
-                            }
-                        })
-                        .setPositiveButton(R.string.download_lists, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                ArrayList<String> selectedFiles = new ArrayList<String>();
-                                for (int i = 0; i < files.length; i++) {
-                                    if (checked[i]) {
-                                        selectedFiles.add(files[i]);
-                                    }
-                                }
-                                if (selectedFiles.size() > 0) {
-                                    final ProgressDialog progress = new ProgressDialog(MainActivity.this);
-                                    progress.setTitle(getString(R.string.download_portal_lists));
-                                    progress.setMessage("Downloading lists...");
-                                    progress.setCancelable(false);
-                                    progress.show();
-                                    (new PortalStore.DownloadFilesTask(selectedFiles)).execute(new PortalStore.DownloadListener() {
-                                        @Override
-                                        public void onDownloadProgress(String fileName, int percent) {
-                                            progress.setMessage(fileName);
-                                            progress.setProgress(percent);
-                                        }
-                                        @Override
-                                        public void onDownloadFinish(boolean success) {
-                                            if (success) {
-                                                Toast.makeText(MainActivity.this, "The portal lists were downloaded successfully.", Toast.LENGTH_SHORT).show();
-                                            } else {
-                                                Toast.makeText(MainActivity.this, "Errors occurred whilst downloading the portal lists.", Toast.LENGTH_LONG).show();
-                                            }
-                                            progress.dismiss();
-                                            showMainMenu();
-                                        }
-                                    });
-                                } else {
-                                    Toast.makeText(MainActivity.this, "No files were selected.", Toast.LENGTH_SHORT).show();
-                                    showMainMenu();
-                                }
-                            }
-                        })
-                        .setOnKeyListener(new Dialog.OnKeyListener() {
-                            @Override
-                            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                                    dialog.cancel();
-                                    finish();
-                                }
-                                return false;
-                            }
-                        })
-                        .create();
-                    mDownloadLists.show();
-                    progress.dismiss();
-                } else {
-                    progress.dismiss();
-                    Toast.makeText(MainActivity.this, "Unable to query for available lists.\nCheck your connection and try again.", Toast.LENGTH_LONG).show();
-                    showMainMenu();
-                }
-            }
-        });
-    }
-
-    /**
-     * Close the download lists menu if open.
-     */
-    public void hideDownloadLists() {
-        if (mDownloadLists != null) {
-            mDownloadLists.cancel();
-            mDownloadLists = null;
-        }
+    @Override
+    public boolean onNavigationItemSelected(int position, long id) {
+        mCurrentFragment = position;
+        // Show the fragment selected in the dropdown
+        getSupportFragmentManager().beginTransaction().replace(R.id.container, (Fragment) mFragments[position]).commit();
+        return true;
     }
 
     /**
@@ -465,7 +191,7 @@ public class MainActivity extends Activity {
         String[] params = getIntent().getAction().substring(Utils.APP_PACKAGE.length() + 1).split("\\.");
         String action = params[0];
         final int i = Integer.valueOf(params[1]);
-        final Portal portal = getPortal(i);
+        final Portal portal = mLocationServiceWrap.getPortal(i);
         Log.d(Utils.APP_TAG, portal.toString());
         if (action.equals("opts")) {
             mPortalMenu = new AlertDialog.Builder(this)
@@ -568,7 +294,7 @@ public class MainActivity extends Activity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     portal.setAlignment(((AlertDialog) dialog).getListView().getCheckedItemPosition() - 1);
-                    updatePortal(i, portal);
+                    mLocationServiceWrap.updatePortal(i, portal);
                     Toast.makeText(MainActivity.this, "Updated alignment to " + alignments[portal.getAlignment() + 1] + ".", Toast.LENGTH_LONG).show();
                     dialog.dismiss();
                     finish();
@@ -608,7 +334,7 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 portal.setKeys(((NumberPickerDialog) dialog).getNumberPicker().getCurrent());
-                updatePortal(i, portal);
+                mLocationServiceWrap.updatePortal(i, portal);
                 Toast.makeText(MainActivity.this, "Updated key count to " + portal.getKeys() + ".", Toast.LENGTH_LONG).show();
                 dialog.dismiss();
                 finish();
@@ -648,9 +374,6 @@ public class MainActivity extends Activity {
      * Close any open menus or dialogs.
      */
     public void hideAll() {
-        hideMainMenu();
-        hideImportLists();
-        hideDownloadLists();
         hidePortalMenu();
         hideAlignment();
         hideKeyCount();
@@ -675,9 +398,9 @@ public class MainActivity extends Activity {
             portal.setBurnedOut();
             message += "Portal burnt out!";
         }
-        updatePortal(i, portal);
+        mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        notifyPortal(i);
+        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -688,9 +411,9 @@ public class MainActivity extends Activity {
     public void burnOutPortal(int i, Portal portal) {
         // Burnt out, wait 4 hours
         portal.setBurnedOut();
-        updatePortal(i, portal);
+        mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, portal.getName() + " burned out.", Toast.LENGTH_SHORT).show();
-        notifyPortal(i);
+        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -701,9 +424,9 @@ public class MainActivity extends Activity {
     public void resetPortal(int i, Portal portal) {
         // Clear any timers or hack counts
         portal.reset();
-        updatePortal(i, portal);
+        mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, "Reset " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
-        notifyPortal(i);
+        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -714,9 +437,9 @@ public class MainActivity extends Activity {
     public void pinPortal(int i, Portal portal) {
         // Toggle pinned notification (doesn't disappear when out of range)
         portal.setPinned(!portal.isPinned());
-        updatePortal(i, portal);
+        mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, (portal.isPinned() ? "P" : "Unp") + "inned " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
-        notifyPortal(i);
+        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -727,13 +450,13 @@ public class MainActivity extends Activity {
     public void resoBuzzPortal(int i, Portal portal) {
         // Toggle resonator buzzing (vibrate when at optimum resonator distance, 35-40m)
         portal.setResoBuzz(!portal.isResoBuzz());
-        updatePortal(i, portal);
+        mLocationServiceWrap.updatePortal(i, portal);
         if (portal.isResoBuzz()) {
             Toast.makeText(this, "Resonator buzz enabled.  Will vibrate at 35-40m from portal.", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(this, "Resonator buzz disabled.", Toast.LENGTH_SHORT).show();
         }
-        notifyPortal(i);
+        mLocationServiceWrap.notifyPortal(i);
     }
 
 }
