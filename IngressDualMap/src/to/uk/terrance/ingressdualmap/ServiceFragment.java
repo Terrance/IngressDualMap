@@ -19,7 +19,7 @@ public class ServiceFragment extends Fragment implements ILocationServiceFragmen
 
     private Activity mActivity;
     private LocationServiceWrap mService;
-    private ToggleButton mButton;    
+    private ToggleButton mButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

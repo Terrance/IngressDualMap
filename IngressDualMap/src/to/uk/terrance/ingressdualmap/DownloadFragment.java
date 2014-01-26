@@ -14,7 +14,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
-
 import android.support.v4.app.Fragment;
 
 /**
@@ -23,19 +22,34 @@ import android.support.v4.app.Fragment;
 public class DownloadFragment extends Fragment {
 
     private Activity mActivity;
+    private boolean mDelay = false;
+    private ListView mList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.frag_download, container, false);
+        View view = inflater.inflate(R.layout.frag_download, container, false);
+        mList = (ListView) view.findViewById(R.id.list_download);
+        if (mDelay) {
+            autorun();
+        }
+        return view;
     }
 
     @Override
     public void onAttach(final Activity activity) {
         super.onAttach(activity);
         mActivity = activity;
-        autorun();
+        // Delay autorun until view is created
+        if (mList == null) {
+            mDelay = true;
+        } else {
+            autorun();
+        }
     }
 
+    /**
+     * Run as soon as the fragment is loaded and ready.
+     */
     public void autorun() {
         final ProgressDialog progress = new ProgressDialog(mActivity);
         progress.setTitle(getString(R.string.download_portal_lists));
@@ -48,13 +62,13 @@ public class DownloadFragment extends Fragment {
                 if (success) {
                     ArrayAdapter<String> adapter = new ArrayAdapter<String>(mActivity,
                             android.R.layout.simple_list_item_multiple_choice, files);
-                    final ListView list = (ListView) getView().findViewById(R.id.list_import);
-                    list.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-                    list.setAdapter(adapter);
+                    final ListView fList = mList;
+                    fList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+                    fList.setAdapter(adapter);
                     ((Button) getView().findViewById(R.id.btn_download)).setOnClickListener(new Button.OnClickListener() {
                         @Override
                         public void onClick(View view) {
-                            SparseBooleanArray positions = list.getCheckedItemPositions();
+                            SparseBooleanArray positions = fList.getCheckedItemPositions();
                             ArrayList<String> selectedFiles = new ArrayList<String>();
                             for (int i = 0; i < files.length; i++) {
                                 if (positions.get(i)) {

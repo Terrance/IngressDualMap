@@ -7,7 +7,7 @@
     tools:context=".DownloadFragment" >
 
     <ListView
-        android:id="@+id/list_downloads"
+        android:id="@+id/list_download"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />

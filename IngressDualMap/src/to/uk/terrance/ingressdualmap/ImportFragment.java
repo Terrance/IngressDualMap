@@ -17,6 +17,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
+
 import android.support.v4.app.Fragment;
 
 /**
@@ -54,6 +55,9 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
         }
     }
 
+    /**
+     * Run as soon as the fragment is loaded and ready.
+     */
     public void autorun() {
         if (!mService.isRunning()) {
             Toast.makeText(mActivity, "You need to start the service before importing lists.", Toast.LENGTH_LONG).show();
