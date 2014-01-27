@@ -31,4 +31,8 @@ interface ILocationService {
      * @param i The index of the portal. 
      */
     void notifyPortal(int i);
+    /**
+     * Refresh the service settings from {@link SharedPreferences}.
+     */
+    void refreshSettings(in int[] values);
 }

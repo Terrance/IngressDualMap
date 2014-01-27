@@ -77,7 +77,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             // Set up the dropdown list navigation in the action bar
             actionBar.setListNavigationCallbacks(adapter, this);
             // Initialise fragments
-            mFragments = new Fragment[]{new ServiceFragment(), new DownloadFragment(), new ImportFragment()};
+            mFragments = new Fragment[]{new ServiceFragment(), new DownloadFragment(),
+                                        new ImportFragment(), new SettingsFragment()};
             for (Fragment fragment : mFragments) {
                 if (fragment instanceof ILocationServiceFragment) {
                     ((ILocationServiceFragment) fragment).setServiceConnection(mLocationServiceWrap); 

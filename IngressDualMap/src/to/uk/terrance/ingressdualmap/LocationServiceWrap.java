@@ -11,8 +11,18 @@ public class LocationServiceWrap {
 
     private ILocationService mLocationService;
 
+    /**
+     * Update the pointer to the raw {@link ILocationService} object.
+     */
     public void set(ILocationService locationService) {
         mLocationService = locationService;
+    }
+
+    /**
+     * Return the pointer to the raw {@link ILocationService} object.
+     */
+    public ILocationService get() {
+        return mLocationService;
     }
 
     /**
@@ -75,6 +85,19 @@ public class LocationServiceWrap {
             try {
                 // Refresh the notification
                 mLocationService.notifyPortal(i);
+            } catch (RemoteException e) {}
+        }
+    }
+
+    /**
+     * Wrapper for {@link ILocationService#refreshSettings} to handle service exceptions.
+     * @param values 
+     */
+    public void refreshSettings(int[] values) {
+        if (mLocationService != null) {
+            try {
+                // Refresh preferences
+                mLocationService.refreshSettings(values);
             } catch (RemoteException e) {}
         }
     }

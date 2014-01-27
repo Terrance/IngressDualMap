@@ -1,6 +1,8 @@
 package to.uk.terrance.ingressdualmap;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import android.app.NotificationManager;
@@ -8,13 +10,13 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
 import android.os.Vibrator;
 import android.util.Log;
 
@@ -31,6 +33,8 @@ public class LocationService extends Service {
     private static LocationManager mLocationManager;
     private static NotificationManager mNotificationManager;
     private static Vibrator mVibrator;
+    private HashMap<String, Integer> mSettings = new HashMap<String, Integer>();
+    private SharedPreferences mPrefs;
     private static ArrayList<Portal> mPortals = new ArrayList<Portal>();
     private UpdateThread mUpdateThread;
 
@@ -101,15 +105,17 @@ public class LocationService extends Service {
                         Portal portal = mPortals.get(i);
                         Float distance = portal.getDistance();
                         // Update notifications
-                        notifyPortal(i, (distance <= 50 || portal.isPinned()));
+                        notifyPortal(i, (distance <= (mSettings.get("notifRange") / 10) || portal.isPinned()));
                         // Handle resonator buzzer
-                        if (portal.isResoBuzz() && distance >= 35 && distance <= 40) {
+                        if (portal.isResoBuzz() && distance >= (mSettings.get("resoBuzz1") / 10)
+                            && distance <= (mSettings.get("resoBuzz2") / 10)) {
                             mVibrator.vibrate(new long[]{0, 100, 100, 100}, -1);
                         }
                     }
                     // Wait a bit
                     sleep(500);
                 }
+                Log.d(Utils.APP_TAG, "Update thread stopped.");
             } catch (InterruptedException e) {
                 Log.d(Utils.APP_TAG, "Update thread interrupted.");
             }
@@ -274,9 +280,19 @@ public class LocationService extends Service {
             portal.setNotificationBuilder(mPortals.get(i).getNotificationBuilder());
             mPortals.set(i, portal);
         }
-        public void notifyPortal(int i) throws RemoteException {
+        public void notifyPortal(int i) {
             Portal portal = mPortals.get(i);
             LocationService.this.notifyPortal(i, portal.getDistance() <= 50 || portal.isPinned());
+        }
+        public void refreshSettings(int[] values) {
+            List<String> keys = new ArrayList<String>(SettingsFragment.DEFAULTS.keySet());
+            Collections.sort(keys);
+            int i = 0;
+            for (String key : keys) {
+                mSettings.put(key, values[i]);
+                Log.d(Utils.APP_TAG, "notifRange: " + mSettings.get(key));
+                i++;
+            }
         }
     };
 
@@ -291,6 +307,12 @@ public class LocationService extends Service {
     public void onCreate() {
         Log.i(Utils.APP_TAG, "Starting location service...");
         initApp(this);
+        // Load settings
+        mPrefs = getSharedPreferences("settings", SettingsFragment.PREFS_MODE);
+        for (String key : SettingsFragment.DEFAULTS.keySet()) {
+            mSettings.put(key, mPrefs.getInt(key, SettingsFragment.DEFAULTS.get(key)));
+            Log.d(Utils.APP_TAG, "notifRange: " + mSettings.get(key));
+        }
         // Start notification updater
         mUpdateThread = new UpdateThread();
         mUpdateThread.start();

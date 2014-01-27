@@ -2,16 +2,23 @@
 <resources>
 
     <string name="app_name">Ingress Dual Map</string>
+    <string-array name="actionbar_dropdown">
+        <item>Service</item>
+        <item>Download</item>
+        <item>Import</item>
+        <item>Settings</item>
+    </string-array>
     <string name="start_service">Start service</string>
     <string name="stop_service">Stop service</string>
     <string name="started">Started</string>
     <string name="stopped">Stopped</string>
+    <string name="clear_notifications">Clear notifications</string>
     <string name="import_portal_lists">Import portal lists</string>
     <string name="import_lists">Import lists</string>
     <string name="download_portal_lists">Download portal lists</string>
     <string name="download_lists">Download lists</string>
     <string name="retry">Retry</string>
-    <string name="clear_notifications">Clear notifications</string>
+    <string name="save_settings">Save settings</string>
     <string name="cancel">Cancel</string>
     <string name="hack">Hack</string>
     <string name="mark_hacked">Mark hacked</string>
@@ -32,10 +39,7 @@
     <string name="unpin_notification">Unpin notification</string>
     <string name="enable_resonator_buzzer">Enable resonator buzz</string>
     <string name="disable_resonator_buzzer">Disable resonator buzz</string>
-    <string-array name="actionbar_dropdown">
-        <item>Service</item>
-        <item>Download</item>
-        <item>Import</item>
-    </string-array>
+    <string name="resonator_buzz_threshold">Resonator buzz threshold</string>
+    <string name="notification_range">Notification range</string>
 
 </resources>
