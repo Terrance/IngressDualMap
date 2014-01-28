@@ -11,9 +11,11 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,7 +53,6 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
     private TextView mTextNotifRange;
     private SeekBar mSeekResoBuzz1, mSeekResoBuzz2;
     private TextView mTextResoBuzz1, mTextResoBuzz2;
-    private Button mButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -62,7 +63,6 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
         mSeekResoBuzz2 = (SeekBar) view.findViewById(R.id.seek_resobuzz2);
         mTextResoBuzz1 = (TextView) view.findViewById(R.id.text_resobuzz1);
         mTextResoBuzz2 = (TextView) view.findViewById(R.id.text_resobuzz2);
-        mButton = (Button) view.findViewById(R.id.btn_save);
         mSeekNotifRange.setMax(1000);
         mSeekResoBuzz1.setMax(1000);
         mSeekResoBuzz2.setMax(1000);
@@ -115,30 +115,10 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
-        mButton.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                SharedPreferences prefs = mActivity.getSharedPreferences("settings", PREFS_MODE);
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putInt("notifRange", mSeekNotifRange.getProgress());
-                editor.putInt("resoBuzz1", mSeekResoBuzz1.getProgress());
-                editor.putInt("resoBuzz2", mSeekResoBuzz2.getProgress());
-                editor.commit();
-                List<String> keys = new ArrayList<String>(SettingsFragment.DEFAULTS.keySet());
-                Collections.sort(keys);
-                int[] values = new int[DEFAULTS.size()];
-                int i = 0;
-                for (String key : keys) {
-                    values[i] = prefs.getInt(key, DEFAULTS.get(key));
-                    i++;
-                }
-                mService.refreshSettings(values);
-                Toast.makeText(mActivity, "Settings have been saved.", Toast.LENGTH_SHORT).show();
-            }
-        });
         if (mDelay) {
             autorun();
         }
+        setHasOptionsMenu(true);
         return view;
     }
 
@@ -152,6 +132,42 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
         } else {
             autorun();
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.frag_settings, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_save:
+                save();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    public void save() {
+        SharedPreferences prefs = mActivity.getSharedPreferences("settings", PREFS_MODE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putInt("notifRange", mSeekNotifRange.getProgress());
+        editor.putInt("resoBuzz1", mSeekResoBuzz1.getProgress());
+        editor.putInt("resoBuzz2", mSeekResoBuzz2.getProgress());
+        editor.commit();
+        List<String> keys = new ArrayList<String>(SettingsFragment.DEFAULTS.keySet());
+        Collections.sort(keys);
+        int[] values = new int[DEFAULTS.size()];
+        int i = 0;
+        for (String key : keys) {
+            values[i] = prefs.getInt(key, DEFAULTS.get(key));
+            i++;
+        }
+        mService.refreshSettings(values);
+        Toast.makeText(mActivity, "Settings have been saved.", Toast.LENGTH_SHORT).show();
     }
 
     /**

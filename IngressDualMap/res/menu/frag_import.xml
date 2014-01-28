@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/menu_refresh"
+        android:icon="@drawable/ic_refresh"
+        android:titleCondensed="@string/refresh"
+        android:title="@string/refresh_available_lists"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_import"
+        android:icon="@drawable/ic_import"
+        android:titleCondensed="@string/import_lists"
+        android:title="@string/import_portal_lists"
+        android:visible="false"
+        app:showAsAction="always" />
+
+</menu>

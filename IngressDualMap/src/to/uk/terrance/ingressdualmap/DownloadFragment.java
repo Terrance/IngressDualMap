@@ -7,13 +7,16 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
+
 import android.support.v4.app.Fragment;
 
 /**
@@ -24,14 +27,17 @@ public class DownloadFragment extends Fragment {
     private Activity mActivity;
     private boolean mDelay = false;
     private ListView mList;
+    private Menu mMenu;
+    private String[] mFiles;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.frag_download, container, false);
         mList = (ListView) view.findViewById(R.id.list_download);
         if (mDelay) {
-            autorun();
+            refresh();
         }
+        setHasOptionsMenu(true);
         return view;
     }
 
@@ -43,14 +49,35 @@ public class DownloadFragment extends Fragment {
         if (mList == null) {
             mDelay = true;
         } else {
-            autorun();
+            refresh();
+        }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        mMenu = menu;
+        inflater.inflate(R.menu.frag_download, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_refresh:
+                refresh();
+                return true;
+            case R.id.menu_download:
+                download();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
     }
 
     /**
-     * Run as soon as the fragment is loaded and ready.
+     * Refresh the list of available downloads from the server. 
      */
-    public void autorun() {
+    public void refresh() {
         final ProgressDialog progress = new ProgressDialog(mActivity);
         progress.setTitle(getString(R.string.download_portal_lists));
         progress.setMessage("Checking available files...");
@@ -60,64 +87,58 @@ public class DownloadFragment extends Fragment {
             @Override
             public void onQueryFinish(boolean success, final String[] files) {
                 if (success) {
+                    mFiles = files;
                     ArrayAdapter<String> adapter = new ArrayAdapter<String>(mActivity,
-                            android.R.layout.simple_list_item_multiple_choice, files);
-                    final ListView fList = mList;
-                    fList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
-                    fList.setAdapter(adapter);
-                    ((Button) getView().findViewById(R.id.btn_download)).setOnClickListener(new Button.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            SparseBooleanArray positions = fList.getCheckedItemPositions();
-                            ArrayList<String> selectedFiles = new ArrayList<String>();
-                            for (int i = 0; i < files.length; i++) {
-                                if (positions.get(i)) {
-                                    selectedFiles.add(files[i]);
-                                }
-                            }
-                            if (selectedFiles.size() > 0) {
-                                final ProgressDialog progress = new ProgressDialog(mActivity);
-                                progress.setTitle(getString(R.string.download_portal_lists));
-                                progress.setMessage("Downloading lists...");
-                                progress.setCancelable(false);
-                                progress.show();
-                                (new PortalStore.DownloadFilesTask(selectedFiles)).execute(new PortalStore.DownloadListener() {
-                                    @Override
-                                    public void onDownloadProgress(String fileName, int percent) {
-                                        progress.setMessage(fileName);
-                                        progress.setProgress(percent);
-                                    }
-                                    @Override
-                                    public void onDownloadFinish(boolean success) {
-                                        if (success) {
-                                            Toast.makeText(mActivity, "The portal lists were downloaded successfully.", Toast.LENGTH_SHORT).show();
-                                        } else {
-                                            Toast.makeText(mActivity, "Errors occurred whilst downloading the portal lists.", Toast.LENGTH_LONG).show();
-                                        }
-                                        progress.dismiss();
-                                    }
-                                });
-                            } else {
-                                Toast.makeText(mActivity, "No lists have been selected.", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
+                            android.R.layout.simple_list_item_multiple_choice, mFiles);
+                    mList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+                    mList.setAdapter(adapter);
                     progress.dismiss();
+                    mMenu.findItem(R.id.menu_download).setVisible(true);
                 } else {
-                    final Button button = ((Button) getView().findViewById(R.id.btn_download));
-                    button.setText(getString(R.string.retry));
-                    button.setOnClickListener(new Button.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            button.setText(getString(R.string.download_lists));
-                            autorun();
-                        }
-                    });
                     progress.dismiss();
+                    mMenu.findItem(R.id.menu_download).setVisible(false);
                     Toast.makeText(mActivity, "Unable to query for available lists.\nCheck your connection and try again.", Toast.LENGTH_LONG).show();
                 }
             }
         });
+    }
+
+    /**
+     * Process the selected downloads.
+     */
+    public void download() {
+        SparseBooleanArray positions = mList.getCheckedItemPositions();
+        ArrayList<String> selectedFiles = new ArrayList<String>();
+        for (int i = 0; i < mFiles.length; i++) {
+            if (positions.get(i)) {
+                selectedFiles.add(mFiles[i]);
+            }
+        }
+        if (selectedFiles.size() > 0) {
+            final ProgressDialog progress = new ProgressDialog(mActivity);
+            progress.setTitle(getString(R.string.download_portal_lists));
+            progress.setMessage("Downloading lists...");
+            progress.setCancelable(false);
+            progress.show();
+            (new PortalStore.DownloadFilesTask(selectedFiles)).execute(new PortalStore.DownloadListener() {
+                @Override
+                public void onDownloadProgress(String fileName, int percent) {
+                    progress.setMessage(fileName);
+                    progress.setProgress(percent);
+                }
+                @Override
+                public void onDownloadFinish(boolean success) {
+                    if (success) {
+                        Toast.makeText(mActivity, "The portal lists were downloaded successfully.", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(mActivity, "Errors occurred whilst downloading the portal lists.", Toast.LENGTH_LONG).show();
+                    }
+                    progress.dismiss();
+                }
+            });
+        } else {
+            Toast.makeText(mActivity, "No lists have been selected.", Toast.LENGTH_SHORT).show();
+        }
     }
 
 }
