@@ -6,6 +6,7 @@
         <item>Service</item>
         <item>Download</item>
         <item>Import</item>
+        <item>Maps</item>
         <item>Settings</item>
     </string-array>
     <string name="start_service">Start service</string>
@@ -13,13 +14,17 @@
     <string name="started">Started</string>
     <string name="stopped">Stopped</string>
     <string name="clear_notifications">Clear notifications</string>
-    <string name="import_portal_lists">Import portal lists</string>
-    <string name="import_lists">Import lists</string>
     <string name="download_portal_lists">Download portal lists</string>
     <string name="download_lists">Download lists</string>
+    <string name="import_portal_lists">Import portal lists</string>
+    <string name="import_lists">Import lists</string>
     <string name="refresh_available_lists">Refresh available lists</string>
     <string name="refresh">Refresh</string>
     <string name="retry">Retry</string>
+    <string name="change_map_layer">Change map layer</string>
+    <string name="layer">Layer</string>
+    <string name="plot_portals">Plot portals</string>
+    <string name="plot">Plot</string>
     <string name="save_settings">Save settings</string>
     <string name="cancel">Cancel</string>
     <string name="hack">Hack</string>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
+
+    <item
+        android:id="@+id/menu_layer"
+        android:icon="@drawable/ic_map"
+        android:titleCondensed="@string/layer"
+        android:title="@string/change_map_layer"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/menu_plot"
+        android:icon="@drawable/ic_marker"
+        android:titleCondensed="@string/plot"
+        android:title="@string/plot_portals"
+        app:showAsAction="always" />
+
+</menu>

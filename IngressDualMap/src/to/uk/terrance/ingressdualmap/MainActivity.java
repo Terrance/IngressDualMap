@@ -78,7 +78,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             actionBar.setListNavigationCallbacks(adapter, this);
             // Initialise fragments
             mFragments = new Fragment[]{new ServiceFragment(), new DownloadFragment(),
-                                        new ImportFragment(), new SettingsFragment()};
+                    new ImportFragment(), new MapsFragment(), new SettingsFragment()};
             for (Fragment fragment : mFragments) {
                 if (fragment instanceof ILocationServiceFragment) {
                     ((ILocationServiceFragment) fragment).setServiceConnection(mLocationServiceWrap); 

@@ -265,25 +265,35 @@ public class LocationService extends Service {
 
     // Methods exposed outside the service (for MainActivity)
     private final ILocationService.Stub mBinder = new ILocationService.Stub() {
+        @Override
         public boolean isRunning() {
             return mRunning;
         }
+        @Override
         public void setPortals(List<Portal> portals) {
             mPortals.clear();
             mPortals.addAll(portals);
         }
+        @Override
         public Portal getPortal(int i) {
             return mPortals.get(i);
         }
+        @Override
+        public List<Portal> getAllPortals() {
+            return mPortals;
+        }
+        @Override
         public void updatePortal(int i, Portal portal) {
             // Recycle the notification
             portal.setNotificationBuilder(mPortals.get(i).getNotificationBuilder());
             mPortals.set(i, portal);
         }
+        @Override
         public void notifyPortal(int i) {
             Portal portal = mPortals.get(i);
             LocationService.this.notifyPortal(i, portal.getDistance() <= 50 || portal.isPinned());
         }
+        @Override
         public void refreshSettings(int[] values) {
             List<String> keys = new ArrayList<String>(SettingsFragment.DEFAULTS.keySet());
             Collections.sort(keys);

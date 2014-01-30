@@ -1,6 +1,6 @@
 package to.uk.terrance.ingressdualmap;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import android.os.RemoteException;
 
@@ -40,7 +40,7 @@ public class LocationServiceWrap {
     /**
      * Wrapper for {@link ILocationService#setPortals} to handle service exceptions.
      */
-    public void setPortals(ArrayList<Portal> portals) {
+    public void setPortals(List<Portal> portals) {
         if (mLocationService != null) {
             try {
                 // Update the service portal list
@@ -57,6 +57,22 @@ public class LocationServiceWrap {
             try {
                 // Fetch a portal from the list
                 return mLocationService.getPortal(i);
+            } catch (RemoteException e) {
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Wrapper for {@link ILocationService#getAllPortals} to handle service exceptions.
+     */
+    public List<Portal> getAllPortals() {
+        if (mLocationService != null) {
+            try {
+                // Fetch a portal from the list
+                return mLocationService.getAllPortals();
             } catch (RemoteException e) {
                 return null;
             }
