@@ -1,17 +1,9 @@
 <resources>
 
-    <!-- Base theme -->
-    <style name="AppTheme" parent="Theme.AppCompat"/>
+    <!-- UI theme -->
+    <style name="UITheme" parent="Theme.AppCompat" />
 
-    <!-- Application theme -->
-    <style name="DialogOnlyTheme" parent="AppTheme">
-        <!-- Non-API-level customizations -->
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowBackground">@android:color/transparent</item>
-        <item name="android:windowContentOverlay">@null</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:windowIsFloating">true</item>
-        <item name="android:backgroundDimEnabled">false</item>
-    </style>
+    <!-- Dialog theme -->
+    <style name="DialogTheme" parent="UITheme" />
 
 </resources>

@@ -64,8 +64,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             mFromNotif = true;
         // Main app UI
         } else {
-            setTheme(R.style.AppTheme);
-            setContentView(R.layout.activity_second);
+            setTheme(R.style.UITheme);
+            setContentView(R.layout.activity_main);
             // Set up the action bar to show a dropdown list
             final ActionBar actionBar = getSupportActionBar();
             actionBar.setDisplayShowTitleEnabled(false);
