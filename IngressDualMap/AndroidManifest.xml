@@ -9,6 +9,8 @@
         android:minSdkVersion="8"
         android:targetSdkVersion="19" />
 
+    <!-- Keep the service running in the background -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <!-- Get current location to display portal notifications -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />

@@ -17,6 +17,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.Log;
 
@@ -30,6 +31,8 @@ public class LocationService extends Service {
     private static Location mLastLocation;
 
     private boolean mRunning = false;
+    private static PowerManager mPowerManager;
+    private static PowerManager.WakeLock mLock;
     private static LocationManager mLocationManager;
     private static NotificationManager mNotificationManager;
     private static Vibrator mVibrator;
@@ -323,6 +326,8 @@ public class LocationService extends Service {
             mSettings.put(key, mPrefs.getInt(key, SettingsFragment.DEFAULTS.get(key)));
             Log.d(Utils.APP_TAG, "notifRange: " + mSettings.get(key));
         }
+        // Acquire wake lock
+        mLock.acquire();
         // Start notification updater
         mUpdateThread = new UpdateThread();
         mUpdateThread.start();
@@ -349,6 +354,8 @@ public class LocationService extends Service {
     public void onDestroy() {
         Log.i(Utils.APP_TAG, "Stopping location service...");
         initApp(this);
+        // Release wake lock
+        mLock.release();
         // Stop notification updater
         if (mUpdateThread != null) {
             mUpdateThread.end();
@@ -365,10 +372,17 @@ public class LocationService extends Service {
     }
 
     /**
-     * Initialize the {@link LocationManager}, {@link NotificationManager} and {@link Vibrator} services.
+     * Initialize the {@link PowerManager}, {@link LocationManager}, {@link NotificationManager} and {@link Vibrator} services.
      * @param context A {@link Context} to initialize components with.
      */
     public static void initApp(Context context) {
+        if (mPowerManager == null) {
+            mPowerManager = (PowerManager) context.getApplicationContext().getSystemService(Context.POWER_SERVICE);
+        }
+        if (mLock == null) {
+            mLock = mPowerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Utils.APP_TAG);
+            mLock.setReferenceCounted(false);
+        }
         if (mLocationManager == null) {
             mLocationManager = (LocationManager) context.getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         }

@@ -104,12 +104,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         if (!mFromNotif) {
             hideAll();
         }
+        disconnectService();
+        mInit = false;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        disconnectService();
     }
 
     /**
