@@ -5,6 +5,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
 import android.util.Log;
@@ -78,6 +79,9 @@ public class MapsFragment extends SupportMapFragment implements ILocationService
             case R.id.menu_plot:
                 plot();
                 return true;
+            case R.id.menu_clear:
+                mMap.clear();
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -86,40 +90,61 @@ public class MapsFragment extends SupportMapFragment implements ILocationService
     @Override
     public void onResume() {
         super.onResume();
-        SupportMapFragment mapFrag = (SupportMapFragment) mActivity.getSupportFragmentManager().findFragmentById(R.id.map);
-        mMap = mapFrag.getMap();
-        mMap.setMyLocationEnabled(true);
-        mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
-            private final View view = getLayoutInflater(null).inflate(R.layout.info_maps, null);
-            @Override
-            public View getInfoContents(Marker mark) {
-                Portal portal = mService.getPortal(mPortals.indexOf(mPairs.get(mark)));
-                int hacks = portal.getHacksRemaining();
-                String text = "<b>" + portal.getName() + "</b><br/>";
-                text += hacks + " more hack" + Utils.plural(hacks);
-                int keys = portal.getKeys();
-                if (keys > 0) {
-                    text += " | " + keys + " key" + Utils.plural(keys);
-                }
-                int burnedOutTime = portal.checkBurnedOut();
-                if (burnedOutTime > 0) {
-                    String time = Utils.shortTime(burnedOutTime);
-                    text += "<br/>Burned out: wait " + time;
-                } else {
-                    int runningHotTime = portal.checkRunningHot();
-                    if (runningHotTime > 0) {
-                        String time = Utils.shortTime(runningHotTime);
-                        text += "<br/>Running hot: wait " + time;
+        if (mMap == null) {
+            SupportMapFragment mapFrag = (SupportMapFragment) mActivity.getSupportFragmentManager().findFragmentById(R.id.map);
+            mMap = mapFrag.getMap();
+            mMap.setMyLocationEnabled(true);
+            final View view = getLayoutInflater(null).inflate(R.layout.info_maps, null);
+            mMap.setInfoWindowAdapter(new GoogleMap.InfoWindowAdapter() {
+                @Override
+                public View getInfoContents(Marker mark) {
+                    Portal portal = mService.getPortal(mPortals.indexOf(mPairs.get(mark)));
+                    int hacks = portal.getHacksRemaining();
+                    String text = "<b>" + portal.getName() + "</b><br/>";
+                    text += hacks + " more hack" + Utils.plural(hacks);
+                    int keys = portal.getKeys();
+                    if (keys > 0) {
+                        text += " | " + keys + " key" + Utils.plural(keys);
                     }
+                    int burnedOutTime = portal.checkBurnedOut();
+                    if (burnedOutTime > 0) {
+                        String time = Utils.shortTime(burnedOutTime);
+                        text += "<br/>Burned out: wait " + time;
+                    } else {
+                        int runningHotTime = portal.checkRunningHot();
+                        if (runningHotTime > 0) {
+                            String time = Utils.shortTime(runningHotTime);
+                            text += "<br/>Running hot: wait " + time;
+                        }
+                    }
+                    String colour = "#000000";
+                    switch (portal.getAlignment()) {
+                        case Portal.ALIGN_NEUTRAL:
+                            colour = "#808080";
+                            break;
+                        case Portal.ALIGN_RESISTANCE:
+                            colour = "#0491D0";
+                            break;
+                        case Portal.ALIGN_ENLIGHTENED:
+                            colour = "#01BF01";
+                            break;
+                    }
+                    TextView info = (TextView) view.findViewById(R.id.text_info);
+                    info.setTextColor(Color.parseColor(colour));
+                    info.setText(Html.fromHtml(text));
+                    return view;
                 }
-                ((TextView) view.findViewById(R.id.text_info)).setText(Html.fromHtml(text));
-                return view;
-            }
-            @Override
-            public View getInfoWindow(Marker mark) {
-                return null;
-            }
-        });
+                @Override
+                public View getInfoWindow(Marker mark) {
+                    return null;
+                }
+            });
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
     }
 
     public void layer() {
@@ -160,6 +185,7 @@ public class MapsFragment extends SupportMapFragment implements ILocationService
                 Intent optsIntent = new Intent(mActivity, MainActivity.class);
                 optsIntent.setAction(Utils.APP_PACKAGE + ".opts." + mPortals.indexOf(portal));
                 startActivity(optsIntent);
+                mark.hideInfoWindow();
             }
         });
     }

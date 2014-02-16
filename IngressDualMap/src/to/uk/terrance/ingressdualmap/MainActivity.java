@@ -48,7 +48,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     private boolean mFromNotif = false;
     private boolean mInit = false;
     private AlertDialog mPortalMenu, mAlignment;
-    private NumberPickerDialog mKeyCount;
+    private NumberPickerDialog mKeyCount, mLevel;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
     private LocationServiceWrap mLocationServiceWrap = new LocationServiceWrap();
@@ -203,6 +203,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     getString(R.string.mark_burned_out),
                     getString(R.string.reset_status),
                     getString(R.string.set_alignment),
+                    getString(R.string.set_level),
                     getString(R.string.set_key_count),
                     getString(portal.isPinned() ? R.string.unpin_notification : R.string.pin_notification),
                     getString(portal.isResoBuzz() ? R.string.disable_resonator_buzzer : R.string.enable_resonator_buzzer)
@@ -223,12 +224,15 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                                 showAlignment(i, portal);
                                 return;
                             case 4:
-                                showKeyCount(i, portal);
+                                showLevel(i, portal);
                                 return;
                             case 5:
+                                showKeyCount(i, portal);
+                                return;
+                            case 6:
                                 pinPortal(i, portal);
                                 break;
-                            case 6:
+                            case 7:
                                 resoBuzzPortal(i, portal);
                                 break;
                         }
@@ -327,7 +331,57 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     }
 
     /**
-     * Show an {@link AlertDialog} menu for setting a portal's key count.
+     * Show a {@link NumberPickerDialog} menu for setting a portal's level.
+     */
+    public void showLevel(final int i, final Portal portal) {
+        mLevel = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.set_level), null, null);
+        mLevel.getNumberPicker().setRange(0, 8);
+        mLevel.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.save), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                portal.setLevel(((NumberPickerDialog) dialog).getNumberPicker().getCurrent());
+                mLocationServiceWrap.updatePortal(i, portal);
+                if (portal.getLevel() > 0) {
+                    Toast.makeText(MainActivity.this, "Updated level to " + portal.getLevel() + ".", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Cleared current level.", Toast.LENGTH_LONG).show();
+                }
+                dialog.dismiss();
+                finish();
+            }
+        });
+        mLevel.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.cancel();
+                finish();
+            }
+        });
+        mLevel.setOnKeyListener(new Dialog.OnKeyListener() {
+            @Override
+            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                if (keyCode == KeyEvent.KEYCODE_BACK) {
+                    dialog.cancel();
+                    finish();
+                }
+                return false;
+            }
+        });
+        mLevel.show();
+    }
+
+    /**
+     * Close the level dialog if open.
+     */
+    public void hideLevel() {
+        if (mLevel != null) {
+            mLevel.cancel();
+            mLevel = null;
+        }
+    }
+
+    /**
+     * Show a {@link NumberPickerDialog} menu for setting a portal's key count.
      */
     public void showKeyCount(final int i, final Portal portal) {
         mKeyCount = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.set_key_count), null, null);
@@ -363,7 +417,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     }
 
     /**
-     * Close the key count menu if open.
+     * Close the key count dialog if open.
      */
     public void hideKeyCount() {
         if (mKeyCount != null) {
@@ -378,6 +432,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     public void hideAll() {
         hidePortalMenu();
         hideAlignment();
+        hideLevel();
         hideKeyCount();
     }
 

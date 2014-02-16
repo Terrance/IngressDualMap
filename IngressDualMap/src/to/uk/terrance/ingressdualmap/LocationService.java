@@ -231,16 +231,23 @@ public class LocationService extends Service {
             if (icons.length() > 0 && portal.getAlignment() != Portal.ALIGN_UNDEFINED) {
                 icons += " ";
             }
+            String brackets = "";
             switch (portal.getAlignment()) {
                 case Portal.ALIGN_NEUTRAL:
-                    icons += "[N]";
+                    brackets += "N";
                     break;
                 case Portal.ALIGN_RESISTANCE:
-                    icons += "[R]";
+                    brackets += "R";
                     break;
                 case Portal.ALIGN_ENLIGHTENED:
-                    icons += "[E]";
+                    brackets += "E";
                     break;
+            }
+            if (portal.getLevel() > 0) {
+                brackets += portal.getLevel();
+            }
+            if (brackets.length() > 0) {
+                icons += "[" + brackets + "]";
             }
             NotificationCompat.Builder builder = portal.getNotificationBuilder()
                 .setContentTitle((icons.length() > 0 ? icons + " " : "") + portal.getName())

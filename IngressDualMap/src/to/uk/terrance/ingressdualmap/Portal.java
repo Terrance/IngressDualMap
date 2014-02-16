@@ -33,6 +33,7 @@ public class Portal implements Parcelable {
     private double mLatitude;
     private double mLongitude;
     private int mAlignment;
+    private int mLevel;
     private int mKeys;
     private int mHacksRemaining;
     private float mDistance = Float.MAX_VALUE;
@@ -108,6 +109,19 @@ public class Portal implements Parcelable {
      */
     public void setAlignment(int alignment) {
         mAlignment = alignment;
+    }
+    /**
+     * @return The portal's current level.
+     */
+    public int getLevel() {
+        return mLevel;
+    }
+    /**
+     * Update the portal's current level.
+     * @param level Between 1 and 8.
+     */
+    public void setLevel(int level) {
+        mLevel = level;
     }
     /**
      * @return The number of keys held for this portal.
@@ -255,6 +269,7 @@ public class Portal implements Parcelable {
         mLatitude = src.readDouble();
         mLongitude = src.readDouble();
         mAlignment = src.readInt();
+        mLevel = src.readInt();
         mKeys = src.readInt();
         mHacksRemaining = src.readInt();
         mDistance = src.readFloat();
@@ -292,6 +307,7 @@ public class Portal implements Parcelable {
         dest.writeDouble(mLatitude);
         dest.writeDouble(mLongitude);
         dest.writeInt(mAlignment);
+        dest.writeInt(mLevel);
         dest.writeInt(mKeys);
         dest.writeInt(mHacksRemaining);
         dest.writeFloat(mDistance);

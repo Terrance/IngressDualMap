@@ -25,6 +25,8 @@
     <string name="layer">Layer</string>
     <string name="plot_portals">Plot portals</string>
     <string name="plot">Plot</string>
+    <string name="clear_portals">Clear portals</string>
+    <string name="clear">Clear</string>
     <string name="save_settings">Save settings</string>
     <string name="cancel">Cancel</string>
     <string name="hack">Hack</string>
@@ -32,7 +34,6 @@
     <string name="mark_burned_out">Mark burned out</string>
     <string name="reset">Reset</string>
     <string name="reset_status">Reset status</string>
-    <string name="set_key_count">Set key count</string>
     <string name="set_alignment">Set alignment</string>
     <string-array name="alignment">
         <item>Undefined</item>
@@ -40,6 +41,8 @@
         <item>Resistance</item>
         <item>Enlightened</item>
     </string-array>
+    <string name="set_level">Set level</string>
+    <string name="set_key_count">Set key count</string>
     <string name="save">Save</string>
     <string name="pin">Pin</string>
     <string name="pin_notification">Pin notification</string>
