@@ -37,8 +37,14 @@ public class LocationService extends Service {
     private static NotificationManager mNotificationManager;
     private static Vibrator mVibrator;
     private HashMap<String, Integer> mSettings = new HashMap<String, Integer>();
+    private boolean[] mFilters = new boolean[13];
+    {
+        for (int i = 0; i < mFilters.length; i++) {
+            mFilters[i] = true;
+        }
+    }
     private SharedPreferences mPrefs;
-    private static ArrayList<Portal> mPortals = new ArrayList<Portal>();
+    private ArrayList<Portal> mPortals = new ArrayList<Portal>();
     private UpdateThread mUpdateThread;
 
     // Two listeners, one for each type of location provider
@@ -106,9 +112,13 @@ public class LocationService extends Service {
                 while (mGo) {
                     for (int i = 0; i < mPortals.size(); i++) {
                         Portal portal = mPortals.get(i);
-                        Float distance = portal.getDistance();
+                        // Show if in range, and not blocked by filters
+                        float distance = portal.getDistance();
+                        boolean show = distance <= (mSettings.get("notifRange") / 10);
+                        show &= mFilters[portal.getAlignment()] && mFilters[4 + portal.getLevel()];
+                        show |= portal.isPinned();
                         // Update notifications
-                        notifyPortal(i, (distance <= (mSettings.get("notifRange") / 10) || portal.isPinned()));
+                        notifyPortal(i, show);
                         // Handle resonator buzzer
                         if (portal.isResoBuzz() && distance >= (mSettings.get("resoBuzz1") / 10)
                             && distance <= (mSettings.get("resoBuzz2") / 10)) {
@@ -304,15 +314,16 @@ public class LocationService extends Service {
             LocationService.this.notifyPortal(i, portal.getDistance() <= 50 || portal.isPinned());
         }
         @Override
-        public void refreshSettings(int[] values) {
+        public void refreshSettings(int[] settings, boolean[] filters) {
             List<String> keys = new ArrayList<String>(SettingsFragment.DEFAULTS.keySet());
             Collections.sort(keys);
             int i = 0;
             for (String key : keys) {
-                mSettings.put(key, values[i]);
+                mSettings.put(key, settings[i]);
                 Log.d(Utils.APP_TAG, "notifRange: " + mSettings.get(key));
                 i++;
             }
+            mFilters = filters;
         }
     };
 

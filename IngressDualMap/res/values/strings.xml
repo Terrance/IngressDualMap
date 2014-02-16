@@ -49,7 +49,24 @@
     <string name="unpin_notification">Unpin notification</string>
     <string name="enable_resonator_buzzer">Enable resonator buzz</string>
     <string name="disable_resonator_buzzer">Disable resonator buzz</string>
-    <string name="resonator_buzz_threshold">Resonator buzz threshold</string>
     <string name="notification_range">Notification range</string>
+    <string name="filter_notifications">Filter notifications</string>
+    <string name="by_range">By range:</string>
+    <string name="no_filter">No filter</string>
+    <string name="undefined">Undefined</string>
+    <string name="by_alignment">By alignment:</string>
+    <string name="neutral">Neutral</string>
+    <string name="res">Res.</string>
+    <string name="enl">Enl.</string>
+    <string name="by_level">By level:</string>
+    <string name="l1">L1</string>
+    <string name="l2">L2</string>
+    <string name="l3">L3</string>
+    <string name="l4">L4</string>
+    <string name="l5">L5</string>
+    <string name="l6">L6</string>
+    <string name="l7">L7</string>
+    <string name="l8">L8</string>
+    <string name="resonator_buzz_threshold">Resonator buzz threshold</string>
 
 </resources>

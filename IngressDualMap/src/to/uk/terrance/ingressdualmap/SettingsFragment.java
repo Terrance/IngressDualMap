@@ -16,6 +16,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.RadioButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,28 +52,52 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
     private boolean mDelay = false;
     private LocationServiceWrap mService;
 
-    private SeekBar mSeekNotifRange;
-    private TextView mTextNotifRange;
+    private SeekBar mSeekFilterRange;
+    private TextView mTextFilterRange;
+    private RadioButton mRadioFilterAlignOff;
+    private CheckBox[] mCheckFilterAligns;
+    private RadioButton mRadioFilterLevelOff;
+    private CheckBox[] mCheckFilterLevels;
     private SeekBar mSeekResoBuzz1, mSeekResoBuzz2;
     private TextView mTextResoBuzz1, mTextResoBuzz2;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.frag_settings, container, false);
-        mSeekNotifRange = (SeekBar) view.findViewById(R.id.seek_notifrange);
-        mTextNotifRange = (TextView) view.findViewById(R.id.text_notifrange);
+        mSeekFilterRange = (SeekBar) view.findViewById(R.id.seek_filterRange);
+        mTextFilterRange = (TextView) view.findViewById(R.id.text_filterRange);
+        mRadioFilterAlignOff = (RadioButton) view.findViewById(R.id.radio_filterAlignOff);
+        mCheckFilterAligns = new CheckBox[]{
+            (CheckBox) view.findViewById(R.id.check_filterAlignUndefined),
+            (CheckBox) view.findViewById(R.id.check_filterAlignNeutral),
+            (CheckBox) view.findViewById(R.id.check_filterAlignRes),
+            (CheckBox) view.findViewById(R.id.check_filterAlignEnl)
+        };
+        mRadioFilterLevelOff = (RadioButton) view.findViewById(R.id.radio_filterLevelOff);
+        mCheckFilterLevels = new CheckBox[]{
+            (CheckBox) view.findViewById(R.id.check_filterLevelUndefined),
+            (CheckBox) view.findViewById(R.id.check_filterLevel1),
+            (CheckBox) view.findViewById(R.id.check_filterLevel2),
+            (CheckBox) view.findViewById(R.id.check_filterLevel3),
+            (CheckBox) view.findViewById(R.id.check_filterLevel4),
+            (CheckBox) view.findViewById(R.id.check_filterLevel5),
+            (CheckBox) view.findViewById(R.id.check_filterLevel6),
+            (CheckBox) view.findViewById(R.id.check_filterLevel7),
+            (CheckBox) view.findViewById(R.id.check_filterLevel8)
+        };
         mSeekResoBuzz1 = (SeekBar) view.findViewById(R.id.seek_resobuzz1);
         mSeekResoBuzz2 = (SeekBar) view.findViewById(R.id.seek_resobuzz2);
         mTextResoBuzz1 = (TextView) view.findViewById(R.id.text_resobuzz1);
         mTextResoBuzz2 = (TextView) view.findViewById(R.id.text_resobuzz2);
-        mSeekNotifRange.setMax(1000);
+        // Distance ranges up to 100m, in 0.1m intervals
+        mSeekFilterRange.setMax(1000);
         mSeekResoBuzz1.setMax(1000);
         mSeekResoBuzz2.setMax(1000);
         // Move other sliders on change to keep values consistent (ensure max >= min etc.)
-        mSeekNotifRange.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        mSeekFilterRange.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                mTextNotifRange.setText((Float.valueOf(progress) / 10) + "m");
+                mTextFilterRange.setText((Float.valueOf(progress) / 10) + "m");
                 if (seekBar.getProgress() < mSeekResoBuzz1.getProgress()) {
                     mSeekResoBuzz1.setProgress(progress);
                 }
@@ -90,8 +117,8 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
                 if (seekBar.getProgress() > mSeekResoBuzz2.getProgress()) {
                     mSeekResoBuzz2.setProgress(progress);
                 }
-                if (seekBar.getProgress() > mSeekNotifRange.getProgress()) {
-                    mSeekNotifRange.setProgress(progress);
+                if (seekBar.getProgress() > mSeekFilterRange.getProgress()) {
+                    mSeekFilterRange.setProgress(progress);
                 }
             }
             @Override
@@ -106,8 +133,8 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
                 if (seekBar.getProgress() < mSeekResoBuzz1.getProgress()) {
                     mSeekResoBuzz1.setProgress(progress);
                 }
-                if (seekBar.getProgress() > mSeekNotifRange.getProgress()) {
-                    mSeekNotifRange.setProgress(progress);
+                if (seekBar.getProgress() > mSeekFilterRange.getProgress()) {
+                    mSeekFilterRange.setProgress(progress);
                 }
             }
             @Override
@@ -115,6 +142,69 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {}
         });
+        // Selecting a radio clears all checkboxes
+        mRadioFilterAlignOff.setOnCheckedChangeListener(new RadioButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton view, boolean checked) {
+                for (CheckBox filterAlign : mCheckFilterAligns) {
+                    filterAlign.setChecked(false);
+                }
+                view.setChecked(checked);
+            }
+        });
+        mRadioFilterLevelOff.setOnCheckedChangeListener(new RadioButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton view, boolean checked) {
+                for (CheckBox filterLevel : mCheckFilterLevels) {
+                    filterLevel.setChecked(false);
+                }
+                view.setChecked(checked);
+            }
+        });
+        // Selecting a checkbox clears the radio, clearing all checkboxes should re-check radio
+        for (CheckBox filterAlign : mCheckFilterAligns) {
+            filterAlign.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton view, boolean checked) {
+                    if (checked) {
+                        mRadioFilterAlignOff.setChecked(false);
+                    } else {
+                        boolean none = true;
+                        for (CheckBox filterAlign : mCheckFilterAligns) {
+                            if (filterAlign.isChecked()) {
+                                none = false;
+                            }
+                        }
+                        if (none) {
+                            mRadioFilterAlignOff.setChecked(true);
+                        }
+                    }
+                    view.setChecked(checked);
+                }
+            });
+        }
+        for (CheckBox filterLevel : mCheckFilterLevels) {
+            filterLevel.setOnCheckedChangeListener(new CheckBox.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton view, boolean checked) {
+                    if (checked) {
+                        mRadioFilterLevelOff.setChecked(false);
+                    } else {
+                        boolean none = true;
+                        for (CheckBox filterLevel : mCheckFilterLevels) {
+                            if (filterLevel.isChecked()) {
+                                none = false;
+                            }
+                        }
+                        if (none) {
+                            mRadioFilterLevelOff.setChecked(true);
+                        }
+                    }
+                    view.setChecked(checked);
+                }
+            });
+        }
+        // Prefill with settings from SharedPreferences
         if (mDelay) {
             autorun();
         }
@@ -127,7 +217,7 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
         super.onAttach(activity);
         mActivity = activity;
         // Delay autorun until view is created
-        if (mSeekNotifRange == null) {
+        if (mSeekFilterRange == null) {
             mDelay = true;
         } else {
             autorun();
@@ -154,19 +244,32 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
     public void save() {
         SharedPreferences prefs = mActivity.getSharedPreferences("settings", PREFS_MODE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putInt("notifRange", mSeekNotifRange.getProgress());
+        editor.putInt("filterRange", mSeekFilterRange.getProgress());
         editor.putInt("resoBuzz1", mSeekResoBuzz1.getProgress());
         editor.putInt("resoBuzz2", mSeekResoBuzz2.getProgress());
         editor.commit();
         List<String> keys = new ArrayList<String>(SettingsFragment.DEFAULTS.keySet());
         Collections.sort(keys);
-        int[] values = new int[DEFAULTS.size()];
+        int[] settings = new int[DEFAULTS.size()];
         int i = 0;
         for (String key : keys) {
-            values[i] = prefs.getInt(key, DEFAULTS.get(key));
+            settings[i] = prefs.getInt(key, DEFAULTS.get(key));
             i++;
         }
-        mService.refreshSettings(values);
+        // 4 alignment filters + 9 level filters
+        boolean[] filters = new boolean[13];
+        i = 0;
+        boolean filterAlignAll = mRadioFilterAlignOff.isChecked();
+        for (CheckBox filterAlign : mCheckFilterAligns) {
+            filters[i] = filterAlignAll || filterAlign.isChecked();
+            i++;
+        }
+        boolean filterLevelAll = mRadioFilterLevelOff.isChecked();
+        for (CheckBox filterLevel : mCheckFilterLevels) {
+            filters[i] = filterLevelAll || filterLevel.isChecked();
+            i++;
+        }
+        mService.refreshSettings(settings, filters);
         Toast.makeText(mActivity, "Settings have been saved.", Toast.LENGTH_SHORT).show();
     }
 
@@ -175,10 +278,10 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
      */
     public void autorun() {
         SharedPreferences prefs = mActivity.getSharedPreferences("settings", PREFS_MODE);
-        mSeekNotifRange.setProgress(prefs.getInt("notifRange", DEFAULTS.get("notifRange")));
+        mSeekFilterRange.setProgress(prefs.getInt("notifRange", DEFAULTS.get("notifRange")));
         mSeekResoBuzz1.setProgress(prefs.getInt("resoBuzz1", DEFAULTS.get("resoBuzz1")));
         mSeekResoBuzz2.setProgress(prefs.getInt("resoBuzz2", DEFAULTS.get("resoBuzz2")));
-        mTextNotifRange.setText((Float.valueOf(mSeekNotifRange.getProgress()) / 10) + "m");
+        mTextFilterRange.setText((Float.valueOf(mSeekFilterRange.getProgress()) / 10) + "m");
         mTextResoBuzz1.setText((Float.valueOf(mSeekResoBuzz1.getProgress()) / 10) + "m");
         mTextResoBuzz2.setText((Float.valueOf(mSeekResoBuzz2.getProgress()) / 10) + "m");
     }

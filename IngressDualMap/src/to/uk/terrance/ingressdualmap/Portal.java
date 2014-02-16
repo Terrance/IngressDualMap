@@ -15,19 +15,19 @@ public class Portal implements Parcelable {
     /**
      * Default portal alignment when not set by the user.
      */
-    public static final int ALIGN_UNDEFINED = -1;
+    public static final int ALIGN_UNDEFINED = 0;
     /**
      * Portal currently does not belong to either team.
      */
-    public static final int ALIGN_NEUTRAL = 0;
+    public static final int ALIGN_NEUTRAL = 1;
     /**
      * Portal belongs to the Resistance.
      */
-    public static final int ALIGN_RESISTANCE = 1;
+    public static final int ALIGN_RESISTANCE = 2;
     /**
      * Portal belongs to the Enlightened.
      */
-    public static final int ALIGN_ENLIGHTENED = 2;
+    public static final int ALIGN_ENLIGHTENED = 3;
 
     private String mName;
     private double mLatitude;
@@ -54,7 +54,8 @@ public class Portal implements Parcelable {
         mName = name;
         mLatitude = latitude;
         mLongitude = longitude;
-        mAlignment = -1;
+        mAlignment = ALIGN_UNDEFINED;
+        mLevel = 0;
         mKeys = 0;
         mHacksRemaining = 4;
     }

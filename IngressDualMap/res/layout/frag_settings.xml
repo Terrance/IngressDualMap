@@ -14,32 +14,186 @@
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin" >
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="@string/filter_notifications"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="4dp"
             android:orientation="horizontal" >
 
-         <TextView
-             android:layout_width="wrap_content"
-             android:layout_height="wrap_content"
-             android:text="@string/notification_range"
-             android:textAppearance="?android:attr/textAppearanceMedium" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/by_range" />
 
-         <TextView
-             android:id="@+id/text_notifrange"
-             android:layout_width="fill_parent"
-             android:layout_height="wrap_content"
-             android:gravity="right" />
-
+            <TextView
+                android:id="@+id/text_filterRange"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="right" />
         </LinearLayout>
 
         <SeekBar
-            android:id="@+id/seek_notifrange"
+            android:id="@+id/seek_filterRange"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:max="100" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/by_alignment" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <RadioButton
+                android:id="@+id/radio_filterAlignOff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:paddingRight="4dp"
+                android:text="@string/no_filter" />
+
+            <CheckBox
+                android:id="@+id/check_filterAlignUndefined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/undefined" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:orientation="horizontal" >
+
+            <CheckBox
+                android:id="@+id/check_filterAlignNeutral"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/neutral" />
+
+            <CheckBox
+                android:id="@+id/check_filterAlignRes"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/res" />
+
+            <CheckBox
+                android:id="@+id/check_filterAlignEnl"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/enl" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/by_level" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <RadioButton
+                android:id="@+id/radio_filterLevelOff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:paddingRight="4dp"
+                android:text="@string/no_filter" />
+
+            <CheckBox
+                android:id="@+id/check_filterLevelUndefined"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/undefined" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <CheckBox
+                android:id="@+id/check_filterLevel1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l1" />
+
+            <CheckBox
+                android:id="@+id/check_filterLevel2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l2" />
+
+            <CheckBox
+                android:id="@+id/check_filterLevel3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l3" />
+
+            <CheckBox
+                android:id="@+id/check_filterLevel4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l4" />
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/activity_vertical_margin"
-            android:max="100" />
+            android:orientation="horizontal" >
+
+            <CheckBox
+                android:id="@+id/check_filterLevel5"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l5" />
+
+            <CheckBox
+                android:id="@+id/check_filterLevel6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l6" />
+
+            <CheckBox
+                android:id="@+id/check_filterLevel7"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l7" />
+
+            <CheckBox
+                android:id="@+id/check_filterLevel8"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingRight="4dp"
+                android:text="@string/l8" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -64,7 +218,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="@dimen/activity_vertical_margin"
             android:orientation="horizontal" >
 
             <TextView
@@ -75,13 +228,11 @@
 
             <TextView
                 android:id="@+id/text_resobuzz2"
-                android:gravity="right"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1" />
-
+                android:layout_weight="1"
+                android:gravity="right" />
         </LinearLayout>
-
     </LinearLayout>
 
 </ScrollView>

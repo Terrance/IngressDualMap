@@ -37,6 +37,8 @@ interface ILocationService {
     void notifyPortal(int i);
     /**
      * Refresh the service settings from {@link SharedPreferences}.
+     * @param settings An array of integer settings as defined in {@link SettingsFragment#DEFAULTS}.
+     * @param filters An array of boolean filters for notifications.
      */
-    void refreshSettings(in int[] values);
+    void refreshSettings(in int[] settings, in boolean[] filters);
 }

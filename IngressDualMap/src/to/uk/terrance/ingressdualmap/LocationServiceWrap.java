@@ -107,13 +107,14 @@ public class LocationServiceWrap {
 
     /**
      * Wrapper for {@link ILocationService#refreshSettings} to handle service exceptions.
-     * @param values 
+     * @param settings
+     * @param filters 
      */
-    public void refreshSettings(int[] values) {
+    public void refreshSettings(int[] settings, boolean[] filters) {
         if (mLocationService != null) {
             try {
                 // Refresh preferences
-                mLocationService.refreshSettings(values);
+                mLocationService.refreshSettings(settings, filters);
             } catch (RemoteException e) {}
         }
     }

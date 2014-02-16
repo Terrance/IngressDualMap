@@ -288,7 +288,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         final String[] alignments = getResources().getStringArray(R.array.alignment);
         mAlignment = new AlertDialog.Builder(this)
             .setTitle(R.string.set_alignment)
-            .setSingleChoiceItems(alignments, portal.getAlignment() + 1, null)
+            .setSingleChoiceItems(alignments, portal.getAlignment(), null)
             .setNegativeButton(R.string.cancel, new AlertDialog.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -299,9 +299,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             .setPositiveButton(R.string.save, new AlertDialog.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-                    portal.setAlignment(((AlertDialog) dialog).getListView().getCheckedItemPosition() - 1);
+                    portal.setAlignment(((AlertDialog) dialog).getListView().getCheckedItemPosition());
                     mLocationServiceWrap.updatePortal(i, portal);
-                    Toast.makeText(MainActivity.this, "Updated alignment to " + alignments[portal.getAlignment() + 1] + ".", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Updated alignment to " + alignments[portal.getAlignment()] + ".", Toast.LENGTH_LONG).show();
                     dialog.dismiss();
                     finish();
                 }
@@ -334,7 +334,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
      * Show a {@link NumberPickerDialog} menu for setting a portal's level.
      */
     public void showLevel(final int i, final Portal portal) {
-        mLevel = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.set_level), null, null);
+        mLevel = new NumberPickerDialog(this, i, portal.getLevel(), getString(R.string.set_level), null, null);
         mLevel.getNumberPicker().setRange(0, 8);
         mLevel.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.save), new DialogInterface.OnClickListener() {
             @Override
@@ -342,7 +342,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                 portal.setLevel(((NumberPickerDialog) dialog).getNumberPicker().getCurrent());
                 mLocationServiceWrap.updatePortal(i, portal);
                 if (portal.getLevel() > 0) {
-                    Toast.makeText(MainActivity.this, "Updated level to " + portal.getLevel() + ".", Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Updated level to L" + portal.getLevel() + ".", Toast.LENGTH_LONG).show();
                 } else {
                     Toast.makeText(MainActivity.this, "Cleared current level.", Toast.LENGTH_LONG).show();
                 }
