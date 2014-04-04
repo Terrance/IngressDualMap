@@ -6,7 +6,7 @@
 
     <!-- Supports Froyo and up -->
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="7"
         android:targetSdkVersion="19" />
 
     <!-- Keep the service running in the background -->

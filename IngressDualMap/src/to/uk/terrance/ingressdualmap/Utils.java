@@ -16,7 +16,7 @@ public class Utils {
     /**
      * Address of the server to query for downloadable portal lists.
      */
-    public static final String URL_LISTS = "http://terrance.uk.to/labs/idm/lists";
+    public static final String URL_LISTS = "http://idm.uk.to/lists";
 
     /**
      * Helper method for easily writing plurals if needed.
