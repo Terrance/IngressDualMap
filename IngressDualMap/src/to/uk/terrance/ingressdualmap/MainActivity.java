@@ -53,7 +53,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     private ILocationService mLocationService;
     private LocationServiceWrap mLocationServiceWrap = new LocationServiceWrap();
     private Fragment[] mFragments;
-    private int mCurrentFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,7 +103,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         if (!mFromNotif) {
             hideAll();
         }
-        disconnectService();
+        unbindService(mConnection);
         mInit = false;
     }
 
@@ -124,8 +123,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                 mLocationServiceWrap.set(mLocationService);
                 if (mFromNotif) {
                     showPortalMenu();
-                } else if (mInit && mFragments[mCurrentFragment] instanceof ILocationServiceFragment) {
-                    ((ILocationServiceFragment) mFragments[mCurrentFragment]).onServiceConnected(); 
                 }
             }
             public void onServiceDisconnected(ComponentName className) {
@@ -136,22 +133,12 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     hideAll();
                     finish();
                 } else {
-                    if (mInit && mFragments[mCurrentFragment] instanceof ILocationServiceFragment) {
-                        ((ILocationServiceFragment) mFragments[mCurrentFragment]).onServiceDisconnected(); 
-                    }
                     // Reload service
                     connectService();
                 }
             }
         };
         bindService(new Intent(this, LocationService.class), mConnection, 0);
-    }
-
-    /**
-     * Unbind the service when pausing or destroying the activity.
-     */
-    public void disconnectService() {
-        unbindService(mConnection);
     }
 
     /**
@@ -179,7 +166,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
 
     @Override
     public boolean onNavigationItemSelected(int position, long id) {
-        mCurrentFragment = position;
         // Show the fragment selected in the dropdown
         getSupportFragmentManager().beginTransaction().replace(R.id.container, (Fragment) mFragments[position]).commit();
         return true;

@@ -291,10 +291,4 @@ public class SettingsFragment extends Fragment implements ILocationServiceFragme
         mService = service;
     }
 
-    @Override
-    public void onServiceConnected() {}
-
-    @Override
-    public void onServiceDisconnected() {}
-
 }

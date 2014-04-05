@@ -195,12 +195,4 @@ public class MapsFragment extends SupportMapFragment implements ILocationService
         mService = service;
     }
 
-    @Override
-    public void onServiceConnected() {
-    }
-
-    @Override
-    public void onServiceDisconnected() {
-    }
-
 }

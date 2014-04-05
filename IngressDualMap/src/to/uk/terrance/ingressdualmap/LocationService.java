@@ -30,7 +30,6 @@ public class LocationService extends Service {
 
     private static Location mLastLocation;
 
-    private boolean mRunning = false;
     private static PowerManager mPowerManager;
     private static PowerManager.WakeLock mLock;
     private static LocationManager mLocationManager;
@@ -286,8 +285,23 @@ public class LocationService extends Service {
     // Methods exposed outside the service (for MainActivity)
     private final ILocationService.Stub mBinder = new ILocationService.Stub() {
         @Override
-        public boolean isRunning() {
-            return mRunning;
+        public boolean isThreadRunning() {
+            return mUpdateThread != null;
+        }
+        @Override
+        public void startThread() {
+            if (mUpdateThread == null) {
+                mUpdateThread = new UpdateThread();
+                mUpdateThread.start();
+            }
+        }
+        @Override
+        public void stopThread() {
+            if (mUpdateThread != null) {
+                mUpdateThread.end();
+                mUpdateThread = null;
+                LocationService.clearNotifs(LocationService.this);
+            }
         }
         @Override
         public void setPortals(List<Portal> portals) {
@@ -346,9 +360,6 @@ public class LocationService extends Service {
         }
         // Acquire wake lock
         mLock.acquire();
-        // Start notification updater
-        mUpdateThread = new UpdateThread();
-        mUpdateThread.start();
         // Start location updates
         try {
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, mLocationListeners[0]);
@@ -364,7 +375,6 @@ public class LocationService extends Service {
         } catch (IllegalArgumentException e) {
             Log.w(Utils.APP_TAG, "Network location provider unavailable.");
         }
-        mRunning = true;
         Log.i(Utils.APP_TAG, "Service is now running!");
     }
 
@@ -385,7 +395,6 @@ public class LocationService extends Service {
         }
         // Clear all notifications
         clearNotifs(this);
-        mRunning = false;
         Log.i(Utils.APP_TAG, "Service is no longer running!");
     }
 

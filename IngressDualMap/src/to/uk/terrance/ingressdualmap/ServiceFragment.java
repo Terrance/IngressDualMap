@@ -19,25 +19,23 @@ public class ServiceFragment extends Fragment implements ILocationServiceFragmen
 
     private Activity mActivity;
     private LocationServiceWrap mService;
-    private ToggleButton mButton;
+    private ToggleButton mToggle;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.frag_service, container, false);
-        mButton = (ToggleButton) view.findViewById(R.id.btn_toggle);
-        mButton.setOnClickListener(new Button.OnClickListener() {
+        mToggle = (ToggleButton) view.findViewById(R.id.btn_toggle);
+        mToggle.setOnClickListener(new Button.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(mActivity.getApplicationContext(), LocationService.class);
-                intent.addCategory(Utils.APP_TAG);
-                if (mService.isRunning()) {
-                    Toast.makeText(mActivity, "Service stopped!", Toast.LENGTH_LONG).show();
-                    mActivity.stopService(intent);
-                    mButton.setChecked(false);
+                if (mService.isThreadRunning()) {
+                    Toast.makeText(mActivity, "Thread stopped!", Toast.LENGTH_LONG).show();
+                    mService.stopThread();
+                    mToggle.setChecked(false);
                 } else {
-                    Toast.makeText(mActivity, "Service started!", Toast.LENGTH_LONG).show();
-                    mActivity.startService(intent);
-                    mButton.setChecked(true);
+                    Toast.makeText(mActivity, "Thread started!", Toast.LENGTH_LONG).show();
+                    mService.startThread();
+                    mToggle.setChecked(true);
                 }
             }
         });
@@ -47,8 +45,17 @@ public class ServiceFragment extends Fragment implements ILocationServiceFragmen
                 LocationService.clearNotifs(mActivity);
             }
         });
-        if (mService.isRunning()) {
-            mButton.setChecked(true);
+        ((Button) view.findViewById(R.id.btn_exit)).setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(mActivity.getApplicationContext(), LocationService.class);
+                intent.addCategory(Utils.APP_TAG);
+                mActivity.stopService(intent);
+                mActivity.finish();
+            }
+        });
+        if (mService.isThreadRunning()) {
+            mToggle.setChecked(true);
         }
         return view;
     }
@@ -56,26 +63,15 @@ public class ServiceFragment extends Fragment implements ILocationServiceFragmen
     @Override
     public void onAttach(final Activity activity) {
         super.onAttach(activity);
+        Intent intent = new Intent(activity.getApplicationContext(), LocationService.class);
+        intent.addCategory(Utils.APP_TAG);
+        activity.startService(intent);
         mActivity = activity;
     }
 
     @Override
     public void setServiceConnection(LocationServiceWrap service) {
         mService = service;
-    }
-
-    @Override
-    public void onServiceConnected() {
-        if (mButton != null) {
-            mButton.setChecked(true);
-        }
-    }
-
-    @Override
-    public void onServiceDisconnected() {
-        if (mButton != null) {
-            mButton.setChecked(false);
-        }
     }
 
 }

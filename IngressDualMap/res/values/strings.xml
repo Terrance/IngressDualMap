@@ -68,5 +68,6 @@
     <string name="l7">L7</string>
     <string name="l8">L8</string>
     <string name="resonator_buzz_threshold">Resonator buzz threshold</string>
+    <string name="stop_and_exit">Stop and exit</string>
 
 </resources>

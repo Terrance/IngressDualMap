@@ -3,6 +3,7 @@ package to.uk.terrance.ingressdualmap;
 import java.util.List;
 
 import android.os.RemoteException;
+import android.util.Log;
 
 /**
  * Wrapper for {@link ILocationService} to handle service exceptions.
@@ -26,14 +27,50 @@ public class LocationServiceWrap {
     }
 
     /**
-     * Wrapper for {@link ILocationService#isRunning} to handle service exceptions.
+     * Check if the {@link ILocationService} has been set.
      */
-    public boolean isRunning() {
+    public boolean isSet() {
+        return mLocationService != null;
+    }
+
+    /**
+     * Wrapper for {@link ILocationService#isThreadRunning} to handle service exceptions.
+     */
+    public boolean isThreadRunning() {
         try {
             // Test if the service is bound and running
-            return mLocationService != null && mLocationService.isRunning();
+            return mLocationService != null && mLocationService.isThreadRunning();
         } catch (RemoteException e) {
+            Log.e(Utils.APP_TAG, "Remote exception.", e);
             return false;
+        }
+    }
+
+    /**
+     * Wrapper for {@link ILocationService#startThread} to handle service exceptions.
+     */
+    public void startThread() {
+        if (mLocationService != null) {
+            try {
+                // Start the notification thread
+                mLocationService.startThread();
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
+        }
+    }
+
+    /**
+     * Wrapper for {@link ILocationService#stopThread} to handle service exceptions.
+     */
+    public void stopThread() {
+        if (mLocationService != null) {
+            try {
+                // Start the notification thread
+                mLocationService.stopThread();
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
         }
     }
 
@@ -45,7 +82,9 @@ public class LocationServiceWrap {
             try {
                 // Update the service portal list
                 mLocationService.setPortals(portals);
-            } catch (RemoteException e) {}
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
         }
     }
 
@@ -58,6 +97,7 @@ public class LocationServiceWrap {
                 // Fetch a portal from the list
                 return mLocationService.getPortal(i);
             } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
                 return null;
             }
         } else {
@@ -74,6 +114,7 @@ public class LocationServiceWrap {
                 // Fetch a portal from the list
                 return mLocationService.getAllPortals();
             } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
                 return null;
             }
         } else {
@@ -89,7 +130,9 @@ public class LocationServiceWrap {
             try {
                 // Update a portal in the service
                 mLocationService.updatePortal(i, portal);
-            } catch (RemoteException e) {}
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
         }
     }
 
@@ -101,7 +144,9 @@ public class LocationServiceWrap {
             try {
                 // Refresh the notification
                 mLocationService.notifyPortal(i);
-            } catch (RemoteException e) {}
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
         }
     }
 
@@ -115,7 +160,9 @@ public class LocationServiceWrap {
             try {
                 // Refresh preferences
                 mLocationService.refreshSettings(settings, filters);
-            } catch (RemoteException e) {}
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
         }
     }
 

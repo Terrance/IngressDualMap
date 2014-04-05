@@ -7,9 +7,17 @@ import to.uk.terrance.ingressdualmap.Portal;
  */
 interface ILocationService {
     /**
-     * @return <code>True</code> if the server is currently running.
+     * @return <code>True</code> if the notification thread is currently running.
      */
-    boolean isRunning();
+    boolean isThreadRunning();
+    /**
+     * Start the notification thread.
+     */
+    void startThread();
+    /**
+     * Stop the notification thread.
+     */
+    void stopThread();
     /**
      * Replace all portals stored in the service with the given {@link List}.
      * @param portals A replacement list of portals.

@@ -165,10 +165,4 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
         mService = service;
     }
 
-    @Override
-    public void onServiceConnected() {}
-
-    @Override
-    public void onServiceDisconnected() {}
-
 }
