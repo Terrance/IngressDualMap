@@ -14,8 +14,10 @@
     <string name="started">Started</string>
     <string name="stopped">Stopped</string>
     <string name="clear_notifications">Clear notifications</string>
+    <string name="stop_and_exit">Stop and exit</string>
     <string name="download_portal_lists">Download portal lists</string>
     <string name="download_lists">Download lists</string>
+    <string name="delete_lists">Delete lists</string>
     <string name="import_portal_lists">Import portal lists</string>
     <string name="import_lists">Import lists</string>
     <string name="refresh_available_lists">Refresh available lists</string>
@@ -68,6 +70,5 @@
     <string name="l7">L7</string>
     <string name="l8">L8</string>
     <string name="resonator_buzz_threshold">Resonator buzz threshold</string>
-    <string name="stop_and_exit">Stop and exit</string>
 
 </resources>

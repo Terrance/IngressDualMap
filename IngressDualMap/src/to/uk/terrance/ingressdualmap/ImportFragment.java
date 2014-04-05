@@ -2,6 +2,7 @@ package to.uk.terrance.ingressdualmap;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -94,7 +95,7 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
             folder.mkdirs();
         }
         mFiles = folder.listFiles();
-        ArrayList<File> filteredFiles = new ArrayList<File>();
+        List<File> filteredFiles = new ArrayList<File>();
         Log.d(Utils.APP_TAG, "Searching for local list files...");
         for (File file : mFiles) {
             String name = file.getName();
@@ -125,7 +126,7 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
      */
     public void importFiles() {
         SparseBooleanArray positions = mList.getCheckedItemPositions();
-        ArrayList<File> selectedFiles = new ArrayList<File>();
+        List<File> selectedFiles = new ArrayList<File>();
         for (int i = 0; i < mFiles.length; i++) {
             if (positions.get(i)) {
                 selectedFiles.add(mFiles[i]);
@@ -144,7 +145,7 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
                     progress.setProgress(percent);
                 }
                 @Override
-                public void onImportFinish(boolean success, ArrayList<Portal> portals) {
+                public void onImportFinish(boolean success, List<Portal> portals) {
                     mService.setPortals(portals);
                     LocationService.clearNotifs(mActivity);
                     if (success) {

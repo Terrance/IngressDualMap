@@ -234,9 +234,9 @@ public class LocationService extends Service {
                 }
             }
             // Show notification
-            String icons = (portal.isPinned() ? "\uD83D\uDCCC" : "")
-                         + (portal.getKeys() > 0 ? "\uD83D\uDD11" : "")
-                         + (portal.isResoBuzz() ? "\uD83D\uDD14" : "");
+            String icons = (portal.isPinned() ? Utils.unicode(0x1F4CC) : "")
+                         + (portal.getKeys() > 0 ? Utils.unicode(0x1F511) : "")
+                         + (portal.isResoBuzz() ? Utils.unicode(0x1F514) : "");
             if (icons.length() > 0 && portal.getAlignment() != Portal.ALIGN_UNDEFINED) {
                 icons += " ";
             }

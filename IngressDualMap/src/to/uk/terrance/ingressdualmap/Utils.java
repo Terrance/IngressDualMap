@@ -42,4 +42,13 @@ public class Utils {
         }
     }
 
+    /**
+     * Get a Unicode character by number.
+     * @param code The Unicode code point.
+     * @return A string representation of the number.
+     */
+    public static String unicode(int point) {
+        return new String(Character.toChars(point));
+    }
+
 }

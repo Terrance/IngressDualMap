@@ -1,5 +1,6 @@
 package to.uk.terrance.ingressdualmap;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,10 +8,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -41,7 +48,7 @@ public class PortalStore {
          * @param success <code>True</code> if all files were imported successfully.
          * @param portals A collection of all successfully imported portals. 
          */
-        void onImportFinish(boolean success, ArrayList<Portal> portals);
+        void onImportFinish(boolean success, List<Portal> portals);
     }
 
     /**
@@ -50,16 +57,16 @@ public class PortalStore {
     public static class ImportFilesTask extends AsyncTask<ImportListener, String, Void> {
 
         private ImportListener[] mListeners;
-        private ArrayList<File> mFiles;
+        private List<File> mFiles;
         private int mPos = 0;
-        private ArrayList<Portal> mPortals = new ArrayList<Portal>();
+        private List<Portal> mPortals = new ArrayList<Portal>();
         private boolean mSuccess = true;
 
         /**
          * A background task to import portals from their lists into the service.
          * @param files An array of files to import portals from.
          */
-        public ImportFilesTask(ArrayList<File> files) {
+        public ImportFilesTask(List<File> files) {
             mFiles = files;
         }
 
@@ -133,10 +140,82 @@ public class PortalStore {
     }
 
     /**
-     * Callback for an {@link QueryFilesTask} instance.
+     * Helper class to represent available files.
+     */
+    public static class Download {
+
+        public static final int STATE_NONE = 0;
+        public static final int STATE_OLD = 1;
+        public static final int STATE_CURRENT = 2;
+
+        private String mLocation;
+        private String mCategory;
+        private String mFilename;
+        private Date mLastUpdate;
+        private int mLocalState = STATE_NONE;
+
+        /**
+         * Helper class to represent notification actions.
+         * @param localFiles A list of local files to compare with the server.
+         * @param params A list of location, category, filename and last update time.
+         */
+        public Download(Map<String, File> localFiles, String[] params) {
+            mLocation = params[0];
+            mCategory = params[1];
+            mFilename = params[2];
+            try {
+                mLastUpdate = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).parse(params[3]);
+            } catch (ParseException e) {
+                mLastUpdate = new Date();
+            }
+            if (localFiles.containsKey(mFilename)) {
+                File file = localFiles.get(mFilename);
+                mLocalState = (mLastUpdate.getTime() > file.lastModified() ? STATE_OLD : STATE_CURRENT);
+            }
+        }
+
+        /**
+         * @return The location that the file covers.
+         */
+        public String getLocation() {
+            return mLocation;
+        }
+
+        /**
+         * @return The category of the file.
+         */
+        public String getCategory() {
+            return mCategory;
+        }
+
+        /**
+         * @return The name of the actual file.
+         */
+        public String getFilename() {
+            return mFilename;
+        }
+
+        /**
+         * @return The date the file was last updated on the server.
+         */
+        public Date getLastUpdate() {
+            return mLastUpdate;
+        }
+
+        /**
+         * @return The state of the local version.
+         */
+        public int getLocalState() {
+            return mLocalState;
+        }
+
+    }
+
+    /**
+     * Callback for a {@link QueryFilesTask} instance.
      */
     public static interface QueryListener {
-        void onQueryFinish(boolean success, String[] files);
+        void onQueryFinish(boolean success, List<Download> downloads);
     }
 
     /**
@@ -145,7 +224,7 @@ public class PortalStore {
     public static class QueryFilesTask extends AsyncTask<QueryListener, Void, Void> {
 
         private QueryListener[] mListeners;
-        private String[] mFiles;
+        private List<Download> mDownloads;
         private boolean mSuccess = true;
 
         @Override
@@ -154,8 +233,34 @@ public class PortalStore {
             Webb webb = Webb.create();
             webb.setBaseUri(Utils.URL_LISTS);
             try {
-                mFiles = webb.post("/lists.txt").ensureSuccess().asString().getBody().split("\r\n");
+                File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
+                if (!folder.exists()) {
+                    folder.mkdirs();
+                }
+                Map<String, File> localFiles = new HashMap<String, File>();
+                for (File file : folder.listFiles()) {
+                    localFiles.put(file.getName(), file);
+                }
+                String content = webb.post("/.dir.csv").ensureSuccess().asString().getBody();
+                CSVReader reader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(content.getBytes("UTF-8"))));
+                mDownloads = new ArrayList<Download>();
+                while (true) {
+                    String[] params;
+                    try {
+                        params = reader.readNext();
+                        if (params == null) {
+                            break;
+                        }
+                        mDownloads.add(new Download(localFiles, params));
+                    } catch (IOException e) {
+                        Log.e(Utils.APP_TAG, "Failed to decode list.", e);
+                        mSuccess = false;
+                    }
+                }
                 Log.i(Utils.APP_TAG, "Lists queried successfully.");
+            } catch (UnsupportedEncodingException e) {
+                Log.e(Utils.APP_TAG, "Failed to decode list.", e);
+                mSuccess = false;
             } catch (WebbException e) {
                 Log.e(Utils.APP_TAG, "Failed to query list.", e);
                 mSuccess = false;
@@ -166,7 +271,7 @@ public class PortalStore {
         @Override
         protected void onPostExecute(Void v) {
             for (QueryListener listener : mListeners) {
-                listener.onQueryFinish(mSuccess, mFiles);
+                listener.onQueryFinish(mSuccess, mDownloads);
             }
         }
 

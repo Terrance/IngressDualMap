@@ -1,6 +1,7 @@
 package to.uk.terrance.ingressdualmap;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -28,7 +29,7 @@ public class DownloadFragment extends Fragment {
     private boolean mDelay = false;
     private ListView mList;
     private Menu mMenu;
-    private String[] mFiles;
+    private List<PortalStore.Download> mDownloads;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -85,11 +86,26 @@ public class DownloadFragment extends Fragment {
         progress.show();
         (new PortalStore.QueryFilesTask()).execute(new PortalStore.QueryListener() {
             @Override
-            public void onQueryFinish(boolean success, final String[] files) {
+            public void onQueryFinish(boolean success, final List<PortalStore.Download> downloads) {
                 if (success) {
-                    mFiles = files;
+                    mDownloads = downloads;
+                    String[] mLabels = new String[mDownloads.size()];
+                    for (int i = 0; i < mDownloads.size(); i++) {
+                        switch (mDownloads.get(i).getLocalState()) {
+                            case PortalStore.Download.STATE_NONE:
+                                mLabels[i] = Utils.unicode(0x1F6AB);
+                                break;
+                            case PortalStore.Download.STATE_OLD:
+                                mLabels[i] = Utils.unicode(0x2B06);
+                                break;
+                            case PortalStore.Download.STATE_CURRENT:
+                                mLabels[i] = Utils.unicode(0x2714);
+                                break;
+                        }
+                        mLabels[i] += " " + mDownloads.get(i).getLocation();
+                    }
                     ArrayAdapter<String> adapter = new ArrayAdapter<String>(mActivity,
-                            android.R.layout.simple_list_item_multiple_choice, mFiles);
+                            android.R.layout.simple_list_item_multiple_choice, mLabels);
                     mList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
                     mList.setAdapter(adapter);
                     progress.dismiss();
@@ -109,9 +125,9 @@ public class DownloadFragment extends Fragment {
     public void download() {
         SparseBooleanArray positions = mList.getCheckedItemPositions();
         ArrayList<String> selectedFiles = new ArrayList<String>();
-        for (int i = 0; i < mFiles.length; i++) {
+        for (int i = 0; i < mDownloads.size(); i++) {
             if (positions.get(i)) {
-                selectedFiles.add(mFiles[i]);
+                selectedFiles.add(mDownloads.get(i).getFilename());
             }
         }
         if (selectedFiles.size() > 0) {
@@ -134,6 +150,7 @@ public class DownloadFragment extends Fragment {
                         Toast.makeText(mActivity, "Errors occurred whilst downloading the portal lists.", Toast.LENGTH_LONG).show();
                     }
                     progress.dismiss();
+                    refresh();
                 }
             });
         } else {
