@@ -15,7 +15,6 @@ Android libraries
 
 This project requires the following libraries (adjust *project.properties* to set their locations):
 
-* [appcompat](http://developer.android.com/tools/support-library/setup.html) (from the Android v7 support library, provides action bars for old Android versions)
+* [appcompat and gridlayout](http://developer.android.com/tools/support-library/setup.html) (from the Android v7 support library)
 * [DavidWebb](https://github.com/hgoebl/DavidWebb) (a lightweight HTTP request alternative)
-* [numberpicker](https://github.com/michaelnovakjr/numberpicker) (a custom NumberPicker for old Android versions)
 * [OpenCSV](http://opencsv.sourceforge.net/) (easier reading of CSV files)
