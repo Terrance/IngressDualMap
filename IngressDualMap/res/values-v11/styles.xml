@@ -1,7 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Dialog theme -->
-    <style name="DialogTheme" parent="UITheme">
+    <style name="Theme.IDM.Dialog">
         <!-- API 11 customizations - hide background on dialogs -->
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowBackground">@android:color/transparent</item>
