@@ -113,7 +113,7 @@ public class DownloadFragment extends Fragment {
                 } else {
                     progress.dismiss();
                     mMenu.findItem(R.id.menu_download).setVisible(false);
-                    Toast.makeText(mActivity, "Unable to query for available lists.\nCheck your connection and try again.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(mActivity, "Unable to query for available lists.  Check your connection and try again.", Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -145,9 +145,9 @@ public class DownloadFragment extends Fragment {
                 @Override
                 public void onDownloadFinish(boolean success) {
                     if (success) {
-                        Toast.makeText(mActivity, "The portal lists were downloaded successfully.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(mActivity, "All downloads completed successfully.", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(mActivity, "Errors occurred whilst downloading the portal lists.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(mActivity, "Some errors occurred whilst downloading the portal lists.  Check your connection and try again.", Toast.LENGTH_LONG).show();
                     }
                     progress.dismiss();
                     refresh();

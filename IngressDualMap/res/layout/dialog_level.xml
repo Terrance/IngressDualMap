@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v7.widget.GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:auto="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:paddingBottom="@dimen/activity_horizontal_margin"
+    android:paddingLeft="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_vertical_margin"
+    android:paddingTop="@dimen/activity_horizontal_margin"
+    auto:columnCount="4" >
+
+    <Button
+        android:id="@+id/btn_level1"
+        auto:layout_column="0"
+        auto:layout_row="0"
+        android:text="@string/l1"
+        android:textColor="#fece5a" />
+
+    <Button
+        android:id="@+id/btn_level2"
+        auto:layout_column="1"
+        auto:layout_row="0"
+        android:text="@string/l2"
+        android:textColor="#ffa630" />
+
+    <Button
+        android:id="@+id/btn_level3"
+        auto:layout_column="2"
+        auto:layout_row="0"
+        android:text="@string/l3"
+        android:textColor="#ff7315" />
+
+    <Button
+        android:id="@+id/btn_level4"
+        auto:layout_column="3"
+        auto:layout_row="0"
+        android:text="@string/l4"
+        android:textColor="#e40000" />
+
+    <Button
+        android:id="@+id/btn_level5"
+        auto:layout_column="0"
+        auto:layout_row="1"
+        android:text="@string/l5"
+        android:textColor="#fd2992" />
+
+    <Button
+        android:id="@+id/btn_level6"
+        auto:layout_column="1"
+        auto:layout_row="1"
+        android:text="@string/l6"
+        android:textColor="#eb26cd" />
+
+    <Button
+        android:id="@+id/btn_level7"
+        auto:layout_column="2"
+        auto:layout_row="1"
+        android:text="@string/l7"
+        android:textColor="#c124e0" />
+
+    <Button
+        android:id="@+id/btn_level8"
+        auto:layout_column="3"
+        auto:layout_row="1"
+        android:text="@string/l8"
+        android:textColor="#9627f4" />
+
+</android.support.v7.widget.GridLayout>

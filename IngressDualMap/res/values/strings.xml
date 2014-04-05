@@ -45,6 +45,8 @@
     </string-array>
     <string name="set_level">Set level</string>
     <string name="set_key_count">Set key count</string>
+    <string name="plus">+</string>
+    <string name="minus">-</string>
     <string name="save">Save</string>
     <string name="pin">Pin</string>
     <string name="pin_notification">Pin notification</string>

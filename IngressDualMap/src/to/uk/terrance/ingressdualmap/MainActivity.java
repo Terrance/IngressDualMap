@@ -13,15 +13,15 @@ import android.content.ServiceConnection;
 import android.os.Build;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import android.support.v4.app.Fragment;
 
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-
-import com.michaelnovakjr.numberpicker.NumberPickerDialog;
 
 /**
  * Main UI activity for enabling the service, downloading portal lists or editing setings.
@@ -47,8 +47,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
 
     private boolean mFromNotif = false;
     private boolean mInit = false;
-    private AlertDialog mPortalMenu, mAlignment;
-    private NumberPickerDialog mKeyCount, mLevel;
+    private AlertDialog mPortalMenu, mAlignment, mLevel, mKeyCount;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
     private LocationServiceWrap mLocationServiceWrap = new LocationServiceWrap();
@@ -172,6 +171,17 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     }
 
     /**
+     * Helper class for closing the dialog/activity on dismiss or cancel.
+     */
+    private class DialogClose implements DialogInterface.OnCancelListener {
+        @Override
+        public void onCancel(DialogInterface dialog) {
+            finish();
+        }
+    }
+    private DialogClose dialogClose = new DialogClose();
+
+    /**
      * Show an {@link AlertDialog} menu with all options relating to specific portals.
      */
     public void showPortalMenu() {
@@ -230,7 +240,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dialog.cancel();
-                        finish();
                     }
                 })
                 .setOnKeyListener(new Dialog.OnKeyListener() {
@@ -238,11 +247,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                         if (keyCode == KeyEvent.KEYCODE_BACK) {
                             dialog.cancel();
-                            finish();
                         }
                         return false;
                     }
                 })
+                .setOnCancelListener(dialogClose)
                 .create();
             mPortalMenu.show();
         } else if (action.equals("hack")) {
@@ -279,7 +288,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
-                    finish();
                 }
             })
             .setPositiveButton(R.string.save, new AlertDialog.OnClickListener() {
@@ -297,11 +305,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                 public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
                         dialog.cancel();
-                        finish();
                     }
                     return false;
                 }
             })
+            .setOnCancelListener(dialogClose)
             .create();
         mAlignment.show();
     }
@@ -317,42 +325,61 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     }
 
     /**
-     * Show a {@link NumberPickerDialog} menu for setting a portal's level.
+     * Show a custom dialog for setting a portal's level.
      */
     public void showLevel(final int i, final Portal portal) {
-        mLevel = new NumberPickerDialog(this, i, portal.getLevel(), getString(R.string.set_level), null, null);
-        mLevel.getNumberPicker().setRange(0, 8);
-        mLevel.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.save), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                portal.setLevel(((NumberPickerDialog) dialog).getNumberPicker().getCurrent());
-                mLocationServiceWrap.updatePortal(i, portal);
-                if (portal.getLevel() > 0) {
-                    Toast.makeText(MainActivity.this, "Updated level to L" + portal.getLevel() + ".", Toast.LENGTH_LONG).show();
-                } else {
+        View view = getLayoutInflater().inflate(R.layout.dialog_level, null);
+        mLevel = new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.set_level))
+            .setView(view)
+            .setNeutralButton(getString(R.string.clear), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    portal.setLevel(0);
+                    mLocationServiceWrap.updatePortal(i, portal);
                     Toast.makeText(MainActivity.this, "Cleared current level.", Toast.LENGTH_LONG).show();
-                }
-                dialog.dismiss();
-                finish();
-            }
-        });
-        mLevel.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-                finish();
-            }
-        });
-        mLevel.setOnKeyListener(new Dialog.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.cancel();
+                    dialog.dismiss();
                     finish();
                 }
-                return false;
-            }
-        });
+            })
+            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            })
+            .setOnKeyListener(new Dialog.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.cancel();
+                    }
+                    return false;
+                }
+            })
+            .setOnCancelListener(dialogClose)
+            .create();
+        View[] buttons = new View[]{
+            view.findViewById(R.id.btn_level1), view.findViewById(R.id.btn_level2),
+            view.findViewById(R.id.btn_level3), view.findViewById(R.id.btn_level4),
+            view.findViewById(R.id.btn_level5), view.findViewById(R.id.btn_level6),
+            view.findViewById(R.id.btn_level7), view.findViewById(R.id.btn_level8)  
+        };
+        int level = 0;
+        for (View button : buttons) {
+            level++;
+            final int thisLevel = level;
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    portal.setLevel(thisLevel);
+                    mLocationServiceWrap.updatePortal(i, portal);
+                    Toast.makeText(MainActivity.this, "Updated level to L" + portal.getLevel() + ".", Toast.LENGTH_LONG).show();
+                    mLevel.dismiss();
+                    finish();
+                }
+            });
+        }
         mLevel.show();
     }
 
@@ -367,39 +394,84 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     }
 
     /**
-     * Show a {@link NumberPickerDialog} menu for setting a portal's key count.
+     * Show a custom dialog for setting a portal's key count.
      */
     public void showKeyCount(final int i, final Portal portal) {
-        mKeyCount = new NumberPickerDialog(this, i, portal.getKeys(), getString(R.string.set_key_count), null, null);
-        mKeyCount.getNumberPicker().setRange(0, 99);
-        mKeyCount.setButton(DialogInterface.BUTTON_POSITIVE, getString(R.string.save), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                portal.setKeys(((NumberPickerDialog) dialog).getNumberPicker().getCurrent());
-                mLocationServiceWrap.updatePortal(i, portal);
-                Toast.makeText(MainActivity.this, "Updated key count to " + portal.getKeys() + ".", Toast.LENGTH_LONG).show();
-                dialog.dismiss();
-                finish();
-            }
-        });
-        mKeyCount.setButton(DialogInterface.BUTTON_NEGATIVE, getString(R.string.cancel), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-                finish();
-            }
-        });
-        mKeyCount.setOnKeyListener(new Dialog.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    dialog.cancel();
+        final View view = getLayoutInflater().inflate(R.layout.dialog_keycount, null);
+        final EditText edit = (EditText) view.findViewById(R.id.edit_keys);
+        mKeyCount = new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.set_key_count))
+            .setView(view)
+            .setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    int val = 0;
+                    try {
+                        val = Integer.valueOf(edit.getText().toString());
+                        if (val < 0) {
+                            val = 0;
+                        }
+                    } catch (NumberFormatException e) {}
+                    portal.setKeys(val);
+                    mLocationServiceWrap.updatePortal(i, portal);
+                    if (portal.getKeys() > 0) {
+                        Toast.makeText(MainActivity.this, "Updated key count to " + portal.getKeys() + ".", Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, "Cleared key count.", Toast.LENGTH_LONG).show();
+                    }
+                    dialog.dismiss();
                     finish();
                 }
-                return false;
+            })
+            .setNeutralButton(getString(R.string.reset), null)
+            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            })
+            .setOnKeyListener(new Dialog.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.cancel();
+                    }
+                    return false;
+                }
+            })
+            .setOnCancelListener(dialogClose)
+            .create();
+        view.findViewById(R.id.btn_minus).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int val = 0;
+                try {
+                    val = Integer.valueOf(edit.getText().toString()) - 1;
+                    if (val < 0) {
+                        val = 0;
+                    }
+                } catch (NumberFormatException e) {}
+                edit.setText(String.valueOf(val));
             }
         });
+        view.findViewById(R.id.btn_plus).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int val = 0;
+                try {
+                    val = Integer.valueOf(edit.getText().toString()) + 1;
+                } catch (NumberFormatException e) {}
+                edit.setText(String.valueOf(val));
+            }
+        });
+        edit.setText(String.valueOf(portal.getKeys()));
         mKeyCount.show();
+        mKeyCount.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                edit.setText("0");
+            }
+        });
     }
 
     /**
