@@ -325,6 +325,10 @@ public class LocationService extends Service {
             return mPortals;
         }
         @Override
+        public void addPortal(Portal portal) {
+            mPortals.add(portal);
+        }
+        @Override
         public void updatePortal(int i, Portal portal) {
             // Recycle the notification
             portal.setNotificationBuilder(mPortals.get(i).getNotificationBuilder());
@@ -364,7 +368,6 @@ public class LocationService extends Service {
         mPrefs = getSharedPreferences("settings", SettingsFragment.PREFS_MODE);
         for (String key : SettingsFragment.DEFAULTS.keySet()) {
             mSettings.put(key, mPrefs.getInt(key, SettingsFragment.DEFAULTS.get(key)));
-            Log.d(Utils.APP_TAG, "notifRange: " + mSettings.get(key));
         }
         // Acquire wake lock
         mLock.acquire();

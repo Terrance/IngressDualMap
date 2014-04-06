@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,7 +19,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import android.support.v4.app.Fragment;
 
@@ -98,6 +103,9 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.menu_add:
+                add();
+                return true;
             case R.id.menu_refresh:
                 refresh();
                 return true;
@@ -190,6 +198,81 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
     public void get() {
         mPortals = mService.getAllPortals();
         mLastLocation = mService.hasLastLocation() ? mService.getLastLocation() : null;
+    }
+
+    /**
+     * Show a custom dialog for adding a new portal.
+     */
+    public void add() {
+        final View view = mActivity.getLayoutInflater().inflate(R.layout.dialog_portal, null);
+        final EditText editName = (EditText) view.findViewById(R.id.edit_name);
+        final EditText editLat = (EditText) view.findViewById(R.id.edit_lat);
+        final EditText editLng = (EditText) view.findViewById(R.id.edit_lng);
+        final AlertDialog add = new AlertDialog.Builder(mActivity)
+            .setTitle(getString(R.string.add_new_portal))
+            .setView(view)
+            .setPositiveButton(getString(R.string.save), null)
+            .setNeutralButton(getString(R.string.here), null)
+            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            })
+            .setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.cancel();
+                    }
+                    return false;
+                }
+            })
+            .create();
+        add.show();
+        add.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean ok = true;
+                editName.setError(null);
+                editLat.setError(null);
+                editLng.setError(null);
+                String name = editName.getText().toString();
+                if (name.trim().equals("")) {
+                    editName.setError("Portal name required!");
+                    ok = false;
+                }
+                double lat = 0;
+                double lng = 0;
+                try {
+                    lat = Double.valueOf(editLat.getText().toString());
+                    lng = Double.valueOf(editLng.getText().toString());
+                } catch (NumberFormatException e) {
+                    editLat.setError("Valid location required!");
+                    editLng.setError("Valid location required!");
+                    ok = false;
+                }
+                if (ok) {
+                    Portal portal = new Portal(name, lat, lng);
+                    mService.addPortal(portal);
+                    Toast.makeText(mActivity, "Portal information updated.", Toast.LENGTH_LONG).show();
+                    add.dismiss();
+                    refresh();
+                }
+            }
+        });
+        add.getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mService.hasLastLocation()) {
+                    double[] location = mService.getLastLocation();
+                    editLat.setText(String.valueOf(location[0]));
+                    editLng.setText(String.valueOf(location[1]));
+                } else {
+                    Toast.makeText(mActivity, "No location data available!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override

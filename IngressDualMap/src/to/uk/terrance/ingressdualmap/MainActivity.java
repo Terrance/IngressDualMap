@@ -2,7 +2,6 @@ package to.uk.terrance.ingressdualmap;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.content.ComponentName;
@@ -47,7 +46,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
 
     private boolean mFromNotif = false;
     private boolean mInit = false;
-    private AlertDialog mPortalMenu, mAlignment, mLevel, mKeyCount;
+    private AlertDialog mPortalMenu, mAlignment, mLevel, mKeyCount, mEdit;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
     private LocationServiceWrap mLocationServiceWrap = new LocationServiceWrap();
@@ -202,7 +201,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     getString(R.string.set_level),
                     getString(R.string.set_key_count),
                     getString(portal.isPinned() ? R.string.unpin_notification : R.string.pin_notification),
-                    getString(portal.isResoBuzz() ? R.string.disable_resonator_buzzer : R.string.enable_resonator_buzzer)
+                    getString(portal.isResoBuzz() ? R.string.disable_resonator_buzzer : R.string.enable_resonator_buzzer),
+                    getString(R.string.edit_portal)
                 }, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -231,6 +231,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                             case 7:
                                 resoBuzzPortal(i, portal);
                                 break;
+                            case 8:
+                                showEdit(i, portal);
+                                return;
                         }
                         dialog.dismiss();
                         finish();
@@ -242,7 +245,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                         dialog.cancel();
                     }
                 })
-                .setOnKeyListener(new Dialog.OnKeyListener() {
+                .setOnKeyListener(new DialogInterface.OnKeyListener() {
                     @Override
                     public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -300,7 +303,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     finish();
                 }
             })
-            .setOnKeyListener(new Dialog.OnKeyListener() {
+            .setOnKeyListener(new DialogInterface.OnKeyListener() {
                 @Override
                 public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -348,7 +351,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     dialog.cancel();
                 }
             })
-            .setOnKeyListener(new Dialog.OnKeyListener() {
+            .setOnKeyListener(new DialogInterface.OnKeyListener() {
                 @Override
                 public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -430,7 +433,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     dialog.cancel();
                 }
             })
-            .setOnKeyListener(new Dialog.OnKeyListener() {
+            .setOnKeyListener(new DialogInterface.OnKeyListener() {
                 @Override
                 public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
                     if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -482,16 +485,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             mKeyCount.cancel();
             mKeyCount = null;
         }
-    }
-
-    /**
-     * Close any open menus or dialogs.
-     */
-    public void hideAll() {
-        hidePortalMenu();
-        hideAlignment();
-        hideLevel();
-        hideKeyCount();
     }
 
     /**
@@ -572,6 +565,108 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             Toast.makeText(this, "Resonator buzz disabled.", Toast.LENGTH_SHORT).show();
         }
         mLocationServiceWrap.notifyPortal(i);
+    }
+
+    /**
+     * Show a custom dialog for editing a portal's name or location.
+     */
+    public void showEdit(final int i, final Portal portal) {
+        final View view = getLayoutInflater().inflate(R.layout.dialog_portal, null);
+        final EditText editName = (EditText) view.findViewById(R.id.edit_name);
+        final EditText editLat = (EditText) view.findViewById(R.id.edit_lat);
+        final EditText editLng = (EditText) view.findViewById(R.id.edit_lng);
+        mEdit = new AlertDialog.Builder(this)
+            .setTitle(getString(R.string.edit_portal))
+            .setView(view)
+            .setPositiveButton(getString(R.string.save), null)
+            .setNeutralButton(getString(R.string.here), null)
+            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            })
+            .setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.cancel();
+                    }
+                    return false;
+                }
+            })
+            .setOnCancelListener(dialogClose)
+            .create();
+        editName.setText(portal.getName());
+        editLat.setText(String.valueOf(portal.getLatitude()));
+        editLng.setText(String.valueOf(portal.getLongitude()));
+        mEdit.show();
+        mEdit.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean ok = true;
+                editName.setError(null);
+                editLat.setError(null);
+                editLng.setError(null);
+                String name = editName.getText().toString();
+                if (name.trim().equals("")) {
+                    editName.setError("Portal name required!");
+                    ok = false;
+                }
+                double lat = 0;
+                double lng = 0;
+                try {
+                    lat = Double.valueOf(editLat.getText().toString());
+                    lng = Double.valueOf(editLng.getText().toString());
+                } catch (NumberFormatException e) {
+                    editLat.setError("Valid location required!");
+                    editLng.setError("Valid location required!");
+                    ok = false;
+                }
+                if (ok) {
+                    portal.setName(name);
+                    portal.setLatitude(lat);
+                    portal.setLongitude(lng);
+                    mLocationServiceWrap.updatePortal(i, portal);
+                    Toast.makeText(MainActivity.this, "Portal information updated.", Toast.LENGTH_LONG).show();
+                    mEdit.dismiss();
+                    finish();
+                }
+            }
+        });
+        mEdit.getButton(DialogInterface.BUTTON_NEUTRAL).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mLocationServiceWrap.hasLastLocation()) {
+                    double[] location = mLocationServiceWrap.getLastLocation();
+                    editLat.setText(String.valueOf(location[0]));
+                    editLng.setText(String.valueOf(location[1]));
+                } else {
+                    Toast.makeText(MainActivity.this, "No location data available!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    /**
+     * Close the edit dialog if open.
+     */
+    public void hideEdit() {
+        if (mEdit != null) {
+            mEdit.cancel();
+            mEdit = null;
+        }
+    }
+
+    /**
+     * Close any open menus or dialogs.
+     */
+    public void hideAll() {
+        hidePortalMenu();
+        hideAlignment();
+        hideLevel();
+        hideKeyCount();
+        hideEdit();
     }
 
 }

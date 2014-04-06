@@ -25,6 +25,8 @@
     <string name="refresh">Refresh</string>
     <string name="retry">Retry</string>
     <string name="refresh_all_portals">Refresh all portals</string>
+    <string name="add">Add</string>
+    <string name="add_new_portal">Add new portal</string>
     <string name="change_map_layer">Change map layer</string>
     <string name="layer">Layer</string>
     <string name="plot_portals">Plot portals</string>
@@ -55,6 +57,11 @@
     <string name="unpin_notification">Unpin notification</string>
     <string name="enable_resonator_buzzer">Enable resonator buzz</string>
     <string name="disable_resonator_buzzer">Disable resonator buzz</string>
+    <string name="edit_portal">Edit portal</string>
+    <string name="name">Name</string>
+    <string name="latitude">Latitude</string>
+    <string name="longitude">Longitude</string>
+    <string name="here">Here</string>
     <string name="notification_range">Notification range</string>
     <string name="filter_notifications">Filter notifications</string>
     <string name="by_range">By range:</string>

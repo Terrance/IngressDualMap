@@ -157,6 +157,20 @@ public class LocationServiceWrap {
     }
 
     /**
+     * Wrapper for {@link ILocationService#addPortal} to handle service exceptions.
+     */
+    public void addPortal(Portal portal) {
+        if (mLocationService != null) {
+            try {
+                // Add a portal to the service
+                mLocationService.addPortal(portal);
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
+        }
+    }
+
+    /**
      * Wrapper for {@link ILocationService#updatePortal} to handle service exceptions.
      */
     public void updatePortal(int i, Portal portal) {
@@ -186,8 +200,6 @@ public class LocationServiceWrap {
 
     /**
      * Wrapper for {@link ILocationService#refreshSettings} to handle service exceptions.
-     * @param settings
-     * @param filters 
      */
     public void refreshSettings(int[] settings, boolean[] filters) {
         if (mLocationService != null) {

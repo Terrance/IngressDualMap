@@ -64,11 +64,11 @@ public class Utils {
      */
     public static String shortDist(double dist) {
         if (dist < 100) {
-            return new DecimalFormat("#.0").format(dist) + "m";
+            return new DecimalFormat("0.0").format(dist) + "m";
         } else if (dist < 1000) {
-            return new DecimalFormat("#").format(dist) + "m";
+            return new DecimalFormat("0").format(dist) + "m";
         } else {
-            return new DecimalFormat("#.00").format(dist / 1000) + "km";
+            return new DecimalFormat("0.00").format(dist / 1000) + "km";
         }
     }
     

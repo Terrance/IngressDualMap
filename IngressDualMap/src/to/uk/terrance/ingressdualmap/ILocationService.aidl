@@ -41,6 +41,11 @@ interface ILocationService {
      */
     java.util.List<Portal> getAllPortals();
     /**
+     * Add a new portal to the service.
+     * @param portal The new portal (will be {@link Parcel}'d).
+     */
+    void addPortal(in Portal portal);
+    /**
      * Replace a portal in the service with an updated version.
      * @param i The index of the portal to replace.
      * @param portal The replacement portal (will be {@link Parcel}'d).
