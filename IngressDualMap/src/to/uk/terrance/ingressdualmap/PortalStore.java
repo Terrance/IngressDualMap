@@ -241,7 +241,7 @@ public class PortalStore {
                 for (File file : folder.listFiles()) {
                     localFiles.put(file.getName(), file);
                 }
-                String content = webb.post("/.dir.csv").ensureSuccess().asString().getBody();
+                String content = webb.post("/dir.php").ensureSuccess().asString().getBody();
                 CSVReader reader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(content.getBytes("UTF-8"))));
                 mDownloads = new ArrayList<Download>();
                 while (true) {

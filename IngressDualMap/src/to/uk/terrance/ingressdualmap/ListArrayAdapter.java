@@ -82,8 +82,8 @@ public class ListArrayAdapter extends ArrayAdapter<Portal> {
                     portal.getLatitude(), portal.getLongitude(), distance);
             meta += Utils.shortDist(distance[0]);
         } else {
-            DecimalFormat format = new DecimalFormat("#.000000");
-            meta += format.format(portal.getLatitude()) + format.format(portal.getLongitude());
+            DecimalFormat format = new DecimalFormat("0.000000");
+            meta += format.format(portal.getLatitude()) + ", " + format.format(portal.getLongitude());
         }
         textMeta1.setText(meta);
         if (mSelected.get(position)) {

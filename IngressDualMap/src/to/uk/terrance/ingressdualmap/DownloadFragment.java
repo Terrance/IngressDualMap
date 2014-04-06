@@ -92,7 +92,8 @@ public class DownloadFragment extends Fragment {
                     String[] mLabels = new String[mDownloads.size()];
                     SparseBooleanArray check = new SparseBooleanArray();
                     for (int i = 0; i < mDownloads.size(); i++) {
-                        switch (mDownloads.get(i).getLocalState()) {
+                        PortalStore.Download dl = mDownloads.get(i);
+                        switch (dl.getLocalState()) {
                             case PortalStore.Download.STATE_NONE:
                                 mLabels[i] = Utils.unicode(0x1F6AB);
                                 break;
@@ -104,7 +105,7 @@ public class DownloadFragment extends Fragment {
                                 mLabels[i] = Utils.unicode(0x2714);
                                 break;
                         }
-                        mLabels[i] += " " + mDownloads.get(i).getLocation();
+                        mLabels[i] += " " + dl.getLocation() + ", " + dl.getCategory();
                     }
                     ArrayAdapter<String> adapter = new ArrayAdapter<String>(mActivity,
                             android.R.layout.simple_list_item_multiple_choice, mLabels);
