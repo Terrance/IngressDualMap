@@ -1,6 +1,9 @@
 package to.uk.terrance.ingressdualmap;
 
+import java.io.File;
 import java.text.DecimalFormat;
+
+import android.os.Environment;
 
 /**
  * Miscellaneous utility and helper functions.
@@ -79,6 +82,18 @@ public class Utils {
      */
     public static String unicode(int point) {
         return new String(Character.toChars(point));
+    }
+    
+    /**
+     * Create and return the external storage folder
+     * @return A {@link File} object for the designated storage location.
+     */
+    public static File extStore() {
+        File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+        return folder;
     }
 
 }

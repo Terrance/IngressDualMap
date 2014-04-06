@@ -1,5 +1,9 @@
 package to.uk.terrance.ingressdualmap;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -23,6 +27,9 @@ import android.util.Log;
 
 import android.support.v4.app.NotificationCompat;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
+
 /** 
  * Background service to manage displaying notifications for portals.
  */
@@ -43,7 +50,7 @@ public class LocationService extends Service {
         }
     }
     private SharedPreferences mPrefs;
-    private ArrayList<Portal> mPortals = new ArrayList<Portal>();
+    private List<Portal> mPortals = new ArrayList<Portal>();
     private UpdateThread mUpdateThread;
 
     // Two listeners, one for each type of location provider
@@ -315,6 +322,7 @@ public class LocationService extends Service {
         public void setPortals(List<Portal> portals) {
             mPortals.clear();
             mPortals.addAll(portals);
+            backup();
         }
         @Override
         public Portal getPortal(int i) {
@@ -327,12 +335,14 @@ public class LocationService extends Service {
         @Override
         public void addPortal(Portal portal) {
             mPortals.add(portal);
+            backup();
         }
         @Override
         public void updatePortal(int i, Portal portal) {
             // Recycle the notification
             portal.setNotificationBuilder(mPortals.get(i).getNotificationBuilder());
             mPortals.set(i, portal);
+            backup();
         }
         @Override
         public void notifyPortal(int i) {
@@ -352,6 +362,32 @@ public class LocationService extends Service {
             mFilters = filters;
         }
     };
+
+    /**
+     * Backup currently imported portals in case of a forced exit.
+     */
+    public void backup() {
+        File backup = new File(Utils.extStore().getPath() + "/.backup.csv");
+        if (mPortals.size() > 0) {
+            Log.i(Utils.APP_TAG, "Backing up imported list...");
+            try {
+                CSVWriter writer = new CSVWriter(new FileWriter(backup));
+                for (Portal portal : mPortals) {
+                    String[] row = new String[]{
+                        portal.getName(), String.valueOf(portal.getLatitude()), String.valueOf(portal.getLongitude()),
+                        String.valueOf(portal.getAlignment()), String.valueOf(portal.getLevel()), String.valueOf(portal.getKeys())
+                    };
+                    writer.writeNext(row);
+                }
+                writer.close();
+                Log.i(Utils.APP_TAG, "List backed up.");
+            } catch (IOException e) {
+                Log.e(Utils.APP_TAG, "Unable to write backup list.", e);
+            }
+        } else if (backup.exists()) {
+            backup.delete();
+        }
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -385,6 +421,30 @@ public class LocationService extends Service {
             Log.e(Utils.APP_TAG, "Network location permission unavailable.", e);
         } catch (IllegalArgumentException e) {
             Log.w(Utils.APP_TAG, "Network location provider unavailable.");
+        }
+        // Restore backup if one existing
+        File folder = Utils.extStore();
+        File backup = new File(folder.getPath() + "/.backup.csv");
+        if (backup.exists()) {
+            Log.i(Utils.APP_TAG, "Restoring backed up list...");
+            try {
+                CSVReader reader = new CSVReader(new FileReader(backup));
+                while (true) {
+                    String[] row = reader.readNext();
+                    if (row == null) {
+                        break;
+                    }
+                    Portal portal = new Portal(row[0], Double.valueOf(row[1]), Double.valueOf(row[2]));
+                    portal.setAlignment(Integer.valueOf(row[3]));
+                    portal.setLevel(Integer.valueOf(row[4]));
+                    portal.setKeys(Integer.valueOf(row[5]));
+                    mPortals.add(portal);
+                }
+                reader.close();
+                Log.i(Utils.APP_TAG, "List restored from backup.");
+            } catch (IOException e) {
+                Log.e(Utils.APP_TAG, "Unable to read backup list.", e);
+            }
         }
         Log.i(Utils.APP_TAG, "Service is now running!");
     }

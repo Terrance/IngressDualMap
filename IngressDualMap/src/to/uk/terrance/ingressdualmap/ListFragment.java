@@ -255,7 +255,7 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
                 if (ok) {
                     Portal portal = new Portal(name, lat, lng);
                     mService.addPortal(portal);
-                    Toast.makeText(mActivity, "Portal information updated.", Toast.LENGTH_LONG).show();
+                    Toast.makeText(mActivity, "New portal added.", Toast.LENGTH_LONG).show();
                     add.dismiss();
                     refresh();
                 }

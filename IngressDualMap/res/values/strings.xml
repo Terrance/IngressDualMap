@@ -14,7 +14,8 @@
     <string name="stop_service">Stop service</string>
     <string name="started">Started</string>
     <string name="stopped">Stopped</string>
-    <string name="clear_notifications">Clear notifications</string>
+    <string name="dismiss_notifications">Dismiss notifications</string>
+    <string name="clear_imported_lists">Clear imported lists</string>
     <string name="stop_and_exit">Stop and exit</string>
     <string name="download_portal_lists">Download portal lists</string>
     <string name="download_lists">Download lists</string>

@@ -7,7 +7,6 @@ import java.util.List;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -33,7 +32,7 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
     private ListView mList;
     private Menu mMenu;
     private boolean mDelay = false;
-    private File[] mFiles;
+    private List<File> mFiles;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -90,25 +89,21 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
      * Refresh the list of available files on the device.
      */
     public void refresh() {
-        final File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-        mFiles = folder.listFiles();
-        List<File> filteredFiles = new ArrayList<File>();
+        File[] files = Utils.extStore().listFiles();
+        mFiles = new ArrayList<File>();
         Log.d(Utils.APP_TAG, "Searching for local list files...");
-        for (File file : mFiles) {
+        for (File file : files) {
             String name = file.getName();
-            if (!name.substring(name.length() - 4).equals(".log")) {
+            if (!name.equals(".backup.csv") && !name.substring(name.length() - 4).equals(".log")) {
                 Log.d(Utils.APP_TAG, "Found " + name + ".");
-                filteredFiles.add(file);
+                mFiles.add(file);
             }
         }
-        int size = filteredFiles.size();
+        int size = mFiles.size();
         if (size > 0) {
             String[] filteredNames = new String[size];
             for (int i = 0; i < size; i++) {
-                filteredNames[i] = filteredFiles.get(i).getName();
+                filteredNames[i] = mFiles.get(i).getName();
             }
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(mActivity,
                     android.R.layout.simple_list_item_multiple_choice, filteredNames);
@@ -127,9 +122,9 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
     public void importFiles() {
         SparseBooleanArray positions = mList.getCheckedItemPositions();
         List<File> selectedFiles = new ArrayList<File>();
-        for (int i = 0; i < mFiles.length; i++) {
+        for (int i = 0; i < mFiles.size(); i++) {
             if (positions.get(i)) {
-                selectedFiles.add(mFiles[i]);
+                selectedFiles.add(mFiles.get(i));
             }
         }
         if (selectedFiles.size() > 0) {

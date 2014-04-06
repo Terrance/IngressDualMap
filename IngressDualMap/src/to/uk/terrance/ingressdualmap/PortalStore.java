@@ -3,7 +3,6 @@ package to.uk.terrance.ingressdualmap;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -20,7 +19,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
 
 import au.com.bytecode.opencsv.CSVReader;
@@ -102,7 +100,8 @@ public class PortalStore {
                     } catch (IOException e) {
                         messages.add("IO exception on file: " + e.getLocalizedMessage());
                     }
-                } catch (FileNotFoundException e) {
+                    reader.close();
+                } catch (IOException e) {
                     messages.add("Unable to find file: " + e.getLocalizedMessage());
                 }
                 if (messages.size() > 0) {
@@ -233,10 +232,7 @@ public class PortalStore {
             Webb webb = Webb.create();
             webb.setBaseUri(Utils.URL_LISTS);
             try {
-                File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
-                if (!folder.exists()) {
-                    folder.mkdirs();
-                }
+                File folder = Utils.extStore();
                 Map<String, File> localFiles = new HashMap<String, File>();
                 for (File file : folder.listFiles()) {
                     localFiles.put(file.getName(), file);
@@ -308,10 +304,7 @@ public class PortalStore {
             mListeners = listeners;
             Webb webb = Webb.create();
             webb.setBaseUri(Utils.URL_LISTS);
-            final File folder = new File(Environment.getExternalStorageDirectory() + "/IngressDualMap");
-            if (!folder.exists()) {
-                folder.mkdirs();
-            }
+            File folder = Utils.extStore();
             ArrayList<String> messages = new ArrayList<String>();
             for (mPos = 0; mPos < mFiles.size(); mPos++) {
                 String file = mFiles.get(mPos);
