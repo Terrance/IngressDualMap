@@ -6,6 +6,7 @@
         <item>Service</item>
         <item>Download</item>
         <item>Import</item>
+        <item>List</item>
         <item>Maps</item>
         <item>Settings</item>
     </string-array>
@@ -23,6 +24,7 @@
     <string name="refresh_available_lists">Refresh available lists</string>
     <string name="refresh">Refresh</string>
     <string name="retry">Retry</string>
+    <string name="refresh_all_portals">Refresh all portals</string>
     <string name="change_map_layer">Change map layer</string>
     <string name="layer">Layer</string>
     <string name="plot_portals">Plot portals</string>

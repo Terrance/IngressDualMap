@@ -1,5 +1,7 @@
 package to.uk.terrance.ingressdualmap;
 
+import java.text.DecimalFormat;
+
 /**
  * Miscellaneous utility and helper functions.
  */
@@ -17,6 +19,19 @@ public class Utils {
      * Address of the server to query for downloadable portal lists.
      */
     public static final String URL_LISTS = "http://idm.uk.to/lists";
+
+    /**
+     * Colours for portal levels.
+     */
+    public static final String[] COLOUR_LEVEL = new String[]{
+        null, "#fece5a", "#ffa630", "#ff7315", "#e40000", "#fd2992", "#eb26cd", "#c124e0", "#9627f4"
+    };
+    /**
+     * Colours for portal alignment.
+     */
+    public static final String[] COLOUR_ALIGNMENT = new String[]{
+        null, "#808080", "#0491D0", "#01BF01"
+    };
 
     /**
      * Helper method for easily writing plurals if needed.
@@ -42,6 +57,21 @@ public class Utils {
         }
     }
 
+    /**
+     * Output a short distance in terms of metres or kilometres as required.
+     * @param dist The distance to represent, in metres.
+     * @return A string representation with appropriate units.
+     */
+    public static String shortDist(double dist) {
+        if (dist < 100) {
+            return new DecimalFormat("#.0").format(dist) + "m";
+        } else if (dist < 1000) {
+            return new DecimalFormat("#").format(dist) + "m";
+        } else {
+            return new DecimalFormat("#.00").format(dist / 1000) + "km";
+        }
+    }
+    
     /**
      * Get a Unicode character by number.
      * @param code The Unicode code point.

@@ -75,6 +75,40 @@ public class LocationServiceWrap {
     }
 
     /**
+     * Wrapper for {@link ILocationService#hasLastLocation} to handle service exceptions.
+     */
+    public boolean hasLastLocation() {
+        if (mLocationService != null) {
+            try {
+                // Fetch a portal from the list
+                return mLocationService.hasLastLocation();
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Wrapper for {@link ILocationService#getLastLocation} to handle service exceptions.
+     */
+    public double[] getLastLocation() {
+        if (mLocationService != null) {
+            try {
+                // Fetch a portal from the list
+                return mLocationService.getLastLocation();
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Wrapper for {@link ILocationService#setPortals} to handle service exceptions.
      */
     public void setPortals(List<Portal> portals) {

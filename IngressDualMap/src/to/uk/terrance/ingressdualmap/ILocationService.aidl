@@ -19,6 +19,14 @@ interface ILocationService {
      */
     void stopThread();
     /**
+     * @return <code>True</code> if a previous location is available.
+     */
+    boolean hasLastLocation();
+    /**
+     * @return The previous location as recorded by the Location service.
+     */
+    double[] getLastLocation();
+    /**
      * Replace all portals stored in the service with the given {@link List}.
      * @param portals A replacement list of portals.
      */

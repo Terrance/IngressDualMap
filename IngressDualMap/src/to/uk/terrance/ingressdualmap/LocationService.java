@@ -304,6 +304,14 @@ public class LocationService extends Service {
             }
         }
         @Override
+        public boolean hasLastLocation() {
+            return mLastLocation != null;
+        }
+        @Override
+        public double[] getLastLocation() {
+            return new double[]{mLastLocation.getLatitude(), mLastLocation.getLongitude()};
+        }
+        @Override
         public void setPortals(List<Portal> portals) {
             mPortals.clear();
             mPortals.addAll(portals);
