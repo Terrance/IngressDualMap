@@ -212,7 +212,7 @@ public class LocationService extends Service {
             Location.distanceBetween(mLastLocation.getLatitude(), mLastLocation.getLongitude(),
                                      portal.getLatitude(), portal.getLongitude(), distance);
             // Generate notification text
-            String text = Math.round(distance[0]) + "m away | ";
+            String text = Utils.shortDist(distance[0]) + " away | ";
             int hacks = portal.getHacksRemaining();
             text += hacks + " more hack" + Utils.plural(hacks);
             String longText = text;

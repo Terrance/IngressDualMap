@@ -567,7 +567,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         portal.setResoBuzz(!portal.isResoBuzz());
         mLocationServiceWrap.updatePortal(i, portal);
         if (portal.isResoBuzz()) {
-            Toast.makeText(this, "Resonator buzz enabled.  Will vibrate at 35-40m from portal.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Resonator buzz enabled.  Will vibrate when at optimal distance from portal.", Toast.LENGTH_LONG).show();
         } else {
             Toast.makeText(this, "Resonator buzz disabled.", Toast.LENGTH_SHORT).show();
         }

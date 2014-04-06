@@ -117,17 +117,9 @@ public class MapsFragment extends SupportMapFragment implements ILocationService
                             text += "<br/>Running hot: wait " + time;
                         }
                     }
-                    String colour = "#000000";
-                    switch (portal.getAlignment()) {
-                        case Portal.ALIGN_NEUTRAL:
-                            colour = "#808080";
-                            break;
-                        case Portal.ALIGN_RESISTANCE:
-                            colour = "#0491D0";
-                            break;
-                        case Portal.ALIGN_ENLIGHTENED:
-                            colour = "#01BF01";
-                            break;
+                    String colour = Utils.COLOUR_ALIGNMENT[portal.getAlignment()];
+                    if (colour == null) {
+                        colour = "#000000";
                     }
                     TextView info = (TextView) view.findViewById(R.id.text_info);
                     info.setTextColor(Color.parseColor(colour));

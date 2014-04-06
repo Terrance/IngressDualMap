@@ -90,6 +90,7 @@ public class DownloadFragment extends Fragment {
                 if (success) {
                     mDownloads = downloads;
                     String[] mLabels = new String[mDownloads.size()];
+                    SparseBooleanArray check = new SparseBooleanArray();
                     for (int i = 0; i < mDownloads.size(); i++) {
                         switch (mDownloads.get(i).getLocalState()) {
                             case PortalStore.Download.STATE_NONE:
@@ -97,6 +98,7 @@ public class DownloadFragment extends Fragment {
                                 break;
                             case PortalStore.Download.STATE_OLD:
                                 mLabels[i] = Utils.unicode(0x2B06);
+                                check.append(i, true);
                                 break;
                             case PortalStore.Download.STATE_CURRENT:
                                 mLabels[i] = Utils.unicode(0x2714);
@@ -108,6 +110,11 @@ public class DownloadFragment extends Fragment {
                             android.R.layout.simple_list_item_multiple_choice, mLabels);
                     mList.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
                     mList.setAdapter(adapter);
+                    for (int i = 0; i < mDownloads.size(); i++) {
+                        if (check.get(i)) {
+                            mList.setItemChecked(i, true);
+                        }
+                    }
                     progress.dismiss();
                     mMenu.findItem(R.id.menu_download).setVisible(true);
                 } else {
