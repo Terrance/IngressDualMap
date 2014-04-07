@@ -52,7 +52,6 @@ public class LocationServiceWrap {
     public void startThread() {
         if (mLocationService != null) {
             try {
-                // Start the notification thread
                 mLocationService.startThread();
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -66,7 +65,6 @@ public class LocationServiceWrap {
     public void stopThread() {
         if (mLocationService != null) {
             try {
-                // Start the notification thread
                 mLocationService.stopThread();
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -80,7 +78,6 @@ public class LocationServiceWrap {
     public boolean hasLastLocation() {
         if (mLocationService != null) {
             try {
-                // Fetch a portal from the list
                 return mLocationService.hasLastLocation();
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -97,7 +94,6 @@ public class LocationServiceWrap {
     public double[] getLastLocation() {
         if (mLocationService != null) {
             try {
-                // Fetch a portal from the list
                 return mLocationService.getLastLocation();
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -114,7 +110,6 @@ public class LocationServiceWrap {
     public void setPortals(List<Portal> portals) {
         if (mLocationService != null) {
             try {
-                // Update the service portal list
                 mLocationService.setPortals(portals);
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -128,7 +123,6 @@ public class LocationServiceWrap {
     public Portal getPortal(int i) {
         if (mLocationService != null) {
             try {
-                // Fetch a portal from the list
                 return mLocationService.getPortal(i);
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -145,7 +139,6 @@ public class LocationServiceWrap {
     public List<Portal> getAllPortals() {
         if (mLocationService != null) {
             try {
-                // Fetch a portal from the list
                 return mLocationService.getAllPortals();
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -162,7 +155,6 @@ public class LocationServiceWrap {
     public void addPortal(Portal portal) {
         if (mLocationService != null) {
             try {
-                // Add a portal to the service
                 mLocationService.addPortal(portal);
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -176,8 +168,20 @@ public class LocationServiceWrap {
     public void updatePortal(int i, Portal portal) {
         if (mLocationService != null) {
             try {
-                // Update a portal in the service
                 mLocationService.updatePortal(i, portal);
+            } catch (RemoteException e) {
+                Log.e(Utils.APP_TAG, "Remote exception.", e);
+            }
+        }
+    }
+
+    /**
+     * Wrapper for {@link ILocationService#removePortals} to handle service exceptions.
+     */
+    public void removePortals(int[] indexes) {
+        if (mLocationService != null) {
+            try {
+                mLocationService.removePortals(indexes);
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
             }
@@ -190,7 +194,6 @@ public class LocationServiceWrap {
     public void notifyPortal(int i) {
         if (mLocationService != null) {
             try {
-                // Refresh the notification
                 mLocationService.notifyPortal(i);
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);
@@ -204,7 +207,6 @@ public class LocationServiceWrap {
     public void refreshSettings(int[] settings, boolean[] filters) {
         if (mLocationService != null) {
             try {
-                // Refresh preferences
                 mLocationService.refreshSettings(settings, filters);
             } catch (RemoteException e) {
                 Log.e(Utils.APP_TAG, "Remote exception.", e);

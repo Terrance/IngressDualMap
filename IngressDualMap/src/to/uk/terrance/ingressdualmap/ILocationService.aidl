@@ -52,6 +52,11 @@ interface ILocationService {
      */
     void updatePortal(int i, in Portal portal);
     /**
+     * Delete multiple portals from the service.
+     * @param indexes An array of indexes of portals to delete.
+     */
+    void removePortals(in int[] indexes);
+    /**
      * Update and show the notification for the given portal if it is in range.
      * @param i The index of the portal. 
      */

@@ -25,6 +25,8 @@
     <string name="refresh_available_lists">Refresh available lists</string>
     <string name="refresh">Refresh</string>
     <string name="retry">Retry</string>
+    <string name="delete">Delete</string>
+    <string name="delete_portals">Delete portals</string>
     <string name="refresh_all_portals">Refresh all portals</string>
     <string name="export">Export</string>
     <string name="export_as_new_list">Export as new list</string>

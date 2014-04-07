@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -343,6 +344,14 @@ public class LocationService extends Service {
             // Recycle the notification
             portal.setNotificationBuilder(mPortals.get(i).getNotificationBuilder());
             mPortals.set(i, portal);
+            backup();
+        }
+        @Override
+        public void removePortals(int[] indexes) {
+            Arrays.sort(indexes);
+            for (int i = indexes.length - 1; i >= 0; i--) {
+                mPortals.remove(indexes[i]);
+            }
             backup();
         }
         @Override

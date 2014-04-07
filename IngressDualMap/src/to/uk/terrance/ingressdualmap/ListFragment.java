@@ -3,7 +3,6 @@ package to.uk.terrance.ingressdualmap;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
@@ -140,19 +139,29 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
         }
 
         @Override
-        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-            // Get selected items
-            SparseBooleanArray checked = mList.getCheckedItemPositions();
-            ArrayList<Portal> portals = new ArrayList<Portal>();
-            for (int i = 0; i < mAdapter.getCount(); i++) {
-                if (checked.get(i)) {
-                    portals.add((Portal) mAdapter.getItem(i));
-                }
-            }
-            // Handle menu option click
+        public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
+            final SparseBooleanArray checked = mList.getCheckedItemPositions();
             switch (item.getItemId()) {
-                case R.id.menu_refresh:
-                    mode.finish();
+                case R.id.menu_delete:
+                    new AlertDialog.Builder(mActivity)
+                        .setMessage("Delete " + String.valueOf(checked.size()) + " portal" + (checked.size() == 1 ? "" : "s")
+                                + "?  This will just remove them from the currently imported list.")
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                int[] indexes = new int[checked.size()];
+                                for (int i = 0, j = 0; i < mAdapter.getCount(); i++) {
+                                    if (checked.get(i)) {
+                                        indexes[j++] = i;
+                                    }
+                                }
+                                mService.removePortals(indexes);
+                                mode.finish();
+                                refresh();
+                            }
+                        })
+                        .setNegativeButton(R.string.no, null)
+                        .show();
                     return true;
                 default:
                     return false;
