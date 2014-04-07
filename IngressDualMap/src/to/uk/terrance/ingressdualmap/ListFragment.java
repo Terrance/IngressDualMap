@@ -1,5 +1,8 @@
 package to.uk.terrance.ingressdualmap;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +30,8 @@ import android.support.v4.app.Fragment;
 
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.view.ActionMode;
+
+import au.com.bytecode.opencsv.CSVWriter;
 
 /**
  * Fragment for showing currently imported portals.
@@ -108,6 +113,9 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
                 return true;
             case R.id.menu_refresh:
                 refresh();
+                return true;
+            case R.id.menu_export:
+                showExport();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -209,11 +217,11 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
         final EditText editLat = (EditText) view.findViewById(R.id.edit_lat);
         final EditText editLng = (EditText) view.findViewById(R.id.edit_lng);
         final AlertDialog add = new AlertDialog.Builder(mActivity)
-            .setTitle(getString(R.string.add_new_portal))
+            .setTitle(R.string.add_new_portal)
             .setView(view)
-            .setPositiveButton(getString(R.string.save), null)
-            .setNeutralButton(getString(R.string.here), null)
-            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            .setPositiveButton(R.string.save, null)
+            .setNeutralButton(R.string.here, null)
+            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
@@ -237,8 +245,8 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
                 editName.setError(null);
                 editLat.setError(null);
                 editLng.setError(null);
-                String name = editName.getText().toString();
-                if (name.trim().equals("")) {
+                String name = editName.getText().toString().trim();
+                if (name.equals("")) {
                     editName.setError("Portal name required!");
                     ok = false;
                 }
@@ -273,6 +281,84 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
                 }
             }
         });
+    }
+
+    /**
+     * Show a custom dialog for entering a filename.
+     */
+    public void showExport() {
+        final View view = mActivity.getLayoutInflater().inflate(R.layout.dialog_export, null);
+        final EditText edit = (EditText) view.findViewById(R.id.edit_file);
+        final AlertDialog export = new AlertDialog.Builder(mActivity)
+            .setTitle(R.string.export_as_new_list)
+            .setView(view)
+            .setPositiveButton(R.string.export, null)
+            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                }
+            })
+            .setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.cancel();
+                    }
+                    return false;
+                }
+            })
+            .create();
+        export.show();
+        export.getButton(DialogInterface.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String name = edit.getText().toString().trim();
+                if (name.length() == 0 || name.contains("/")) {
+                    edit.setError("Valid filename required!");
+                } else {
+                    edit.setError(null);
+                    File folder = Utils.extStore();
+                    final File file = new File(folder.getPath() + "/" + name); 
+                    if (file.exists()) {
+                        new AlertDialog.Builder(mActivity)
+                            .setMessage("The file " + name + " already exists.  Overwrite?")
+                            .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    export.dismiss();
+                                    doExport(file);
+                                }
+                            })
+                            .setNegativeButton(R.string.no, null)
+                            .show();
+                    } else {
+                        export.dismiss();
+                        doExport(file);
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Write all currently imported portals into a new list.
+     * @param file The {@link File} object to write to.
+     */
+    public void doExport(File file) {
+        try {
+            CSVWriter writer = new CSVWriter(new FileWriter(file));
+            for (Portal portal : mPortals) {
+                String[] row = new String[]{
+                    portal.getName(), String.valueOf(portal.getLatitude()), String.valueOf(portal.getLongitude())
+                };
+                writer.writeNext(row);
+            }
+            writer.close();
+            Toast.makeText(mActivity, "List exported as " + file.getName() + ".", Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            Toast.makeText(mActivity, "Failed to export the list.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

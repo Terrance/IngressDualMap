@@ -16,4 +16,11 @@
         android:title="@string/refresh_all_portals"
         app:showAsAction="always" />
 
+    <item
+        android:id="@+id/menu_export"
+        android:icon="@drawable/ic_export"
+        android:titleCondensed="@string/export"
+        android:title="@string/export_as_new_list"
+        app:showAsAction="always" />
+
 </menu>

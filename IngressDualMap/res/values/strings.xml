@@ -26,6 +26,12 @@
     <string name="refresh">Refresh</string>
     <string name="retry">Retry</string>
     <string name="refresh_all_portals">Refresh all portals</string>
+    <string name="export">Export</string>
+    <string name="export_as_new_list">Export as new list</string>
+    <string name="enter_a_filename_to_">Enter a filename to export the list to.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="filename">Filename</string>
     <string name="add">Add</string>
     <string name="add_new_portal">Add new portal</string>
     <string name="change_map_layer">Change map layer</string>

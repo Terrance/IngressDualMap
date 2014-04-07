@@ -80,7 +80,7 @@ public class DownloadFragment extends Fragment {
      */
     public void refresh() {
         final ProgressDialog progress = new ProgressDialog(mActivity);
-        progress.setTitle(getString(R.string.download_portal_lists));
+        progress.setTitle(R.string.download_portal_lists);
         progress.setMessage("Checking available files...");
         progress.setCancelable(false);
         progress.show();
@@ -140,7 +140,7 @@ public class DownloadFragment extends Fragment {
         }
         if (selectedFiles.size() > 0) {
             final ProgressDialog progress = new ProgressDialog(mActivity);
-            progress.setTitle(getString(R.string.download_portal_lists));
+            progress.setTitle(R.string.download_portal_lists);
             progress.setMessage("Downloading lists...");
             progress.setCancelable(false);
             progress.show();

@@ -7,7 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -231,15 +230,15 @@ public class PortalStore {
             mListeners = listeners;
             Webb webb = Webb.create();
             webb.setBaseUri(Utils.URL_LISTS);
+            File folder = Utils.extStore();
+            Map<String, File> localFiles = new HashMap<String, File>();
+            for (File file : folder.listFiles()) {
+                localFiles.put(file.getName(), file);
+            }
             try {
-                File folder = Utils.extStore();
-                Map<String, File> localFiles = new HashMap<String, File>();
-                for (File file : folder.listFiles()) {
-                    localFiles.put(file.getName(), file);
-                }
                 String content = webb.post("/dir.php").ensureSuccess().asString().getBody();
-                CSVReader reader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(content.getBytes("UTF-8"))));
                 mDownloads = new ArrayList<Download>();
+                CSVReader reader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(content.getBytes("UTF-8"))));
                 while (true) {
                     String[] params;
                     try {
@@ -253,8 +252,9 @@ public class PortalStore {
                         mSuccess = false;
                     }
                 }
+                reader.close();
                 Log.i(Utils.APP_TAG, "Lists queried successfully.");
-            } catch (UnsupportedEncodingException e) {
+            } catch (IOException e) {
                 Log.e(Utils.APP_TAG, "Failed to decode list.", e);
                 mSuccess = false;
             } catch (WebbException e) {

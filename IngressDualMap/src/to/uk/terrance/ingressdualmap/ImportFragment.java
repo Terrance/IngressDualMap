@@ -129,7 +129,7 @@ public class ImportFragment extends Fragment implements ILocationServiceFragment
         }
         if (selectedFiles.size() > 0) {
             final ProgressDialog progress = new ProgressDialog(mActivity);
-            progress.setTitle(getString(R.string.import_portal_lists));
+            progress.setTitle(R.string.import_portal_lists);
             progress.setMessage("Searching for files...");
             progress.setCancelable(false);
             progress.show();

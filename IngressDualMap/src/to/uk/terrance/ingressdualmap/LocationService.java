@@ -147,17 +147,17 @@ public class LocationService extends Service {
      */
     private static class Action {
 
-        private String mLabel;
+        private int mLabel;
         private String mAction;
         private int mDrawable;
 
         /**
          * Helper class to represent notification actions.
-         * @param label Text to display for the action.
+         * @param label Resource ID for text to display for the action.
          * @param action Actual action to perform, passed to the intent.
          * @param drawable Resource ID for an icon to display with the label.
          */
-        public Action(String label, String action, int drawable) {
+        public Action(int label, String action, int drawable) {
             mLabel = label;
             mAction = action;
             mDrawable = drawable;
@@ -166,7 +166,7 @@ public class LocationService extends Service {
         /**
          * @return The label of the notification action.
          */
-        public String getLabel() {
+        public int getLabel() {
             return mLabel;
         }
         /**
@@ -203,14 +203,15 @@ public class LocationService extends Service {
                     .setContentIntent(PendingIntent.getActivity(this, 0, optsIntent, 0));
                 // Quick access notification actions
                 Action[] actions = new Action[]{
-                    new Action(getString(R.string.hack), MainActivity.ACTION_HACK, R.drawable.ic_hack),
-                    new Action(getString(R.string.reset), MainActivity.ACTION_RESET, R.drawable.ic_reset),
-                    new Action(getString(R.string.pin), MainActivity.ACTION_PIN, R.drawable.ic_pin)
+                    new Action(R.string.hack, MainActivity.ACTION_HACK, R.drawable.ic_hack),
+                    new Action(R.string.reset, MainActivity.ACTION_RESET, R.drawable.ic_reset),
+                    new Action(R.string.pin, MainActivity.ACTION_PIN, R.drawable.ic_pin)
                 };
                 for (Action action : actions) {
                     Intent actionIntent = new Intent(this, MainActivity.class);
                     actionIntent.setAction(Utils.APP_PACKAGE + "." + action.getAction() + "." + i);
-                    notif.addAction(action.getDrawable(), action.getLabel(), PendingIntent.getActivity(this, 0, actionIntent, 0));
+                    notif.addAction(action.getDrawable(), getString(action.getLabel()),
+                            PendingIntent.getActivity(this, 0, actionIntent, 0));
                 }
                 portal.setNotificationBuilder(notif);
             }

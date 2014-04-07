@@ -333,9 +333,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     public void showLevel(final int i, final Portal portal) {
         View view = getLayoutInflater().inflate(R.layout.dialog_level, null);
         mLevel = new AlertDialog.Builder(this)
-            .setTitle(getString(R.string.set_level))
+            .setTitle(R.string.set_level)
             .setView(view)
-            .setNeutralButton(getString(R.string.clear), new DialogInterface.OnClickListener() {
+            .setNeutralButton(R.string.clear, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     portal.setLevel(0);
@@ -345,7 +345,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     finish();
                 }
             })
-            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
@@ -403,9 +403,9 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         final View view = getLayoutInflater().inflate(R.layout.dialog_keycount, null);
         final EditText edit = (EditText) view.findViewById(R.id.edit_keys);
         mKeyCount = new AlertDialog.Builder(this)
-            .setTitle(getString(R.string.set_key_count))
+            .setTitle(R.string.set_key_count)
             .setView(view)
-            .setPositiveButton(getString(R.string.save), new DialogInterface.OnClickListener() {
+            .setPositiveButton(R.string.save, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     int val = 0;
@@ -426,8 +426,8 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     finish();
                 }
             })
-            .setNeutralButton(getString(R.string.reset), null)
-            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            .setNeutralButton(R.string.reset, null)
+            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
@@ -576,11 +576,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         final EditText editLat = (EditText) view.findViewById(R.id.edit_lat);
         final EditText editLng = (EditText) view.findViewById(R.id.edit_lng);
         mEdit = new AlertDialog.Builder(this)
-            .setTitle(getString(R.string.edit_portal))
+            .setTitle(R.string.edit_portal)
             .setView(view)
-            .setPositiveButton(getString(R.string.save), null)
-            .setNeutralButton(getString(R.string.here), null)
-            .setNegativeButton(getString(R.string.cancel), new DialogInterface.OnClickListener() {
+            .setPositiveButton(R.string.save, null)
+            .setNeutralButton(R.string.here, null)
+            .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.cancel();
