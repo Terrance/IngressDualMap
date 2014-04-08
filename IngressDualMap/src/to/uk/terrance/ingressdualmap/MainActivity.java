@@ -1,9 +1,13 @@
 package to.uk.terrance.ingressdualmap;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -194,15 +198,82 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             View view = getLayoutInflater().inflate(R.layout.dialog_portal, null);
             final Button btnHack = (Button) view.findViewById(R.id.btn_hack);
             final Button btnBurn = (Button) view.findViewById(R.id.btn_burn);
-            Button btnAlign = (Button) view.findViewById(R.id.btn_align);
-            Button btnLevel = (Button) view.findViewById(R.id.btn_level);
-            Button btnKeys = (Button) view.findViewById(R.id.btn_keys);
+            final Button btnAlign = (Button) view.findViewById(R.id.btn_align);
+            final Button btnLevel = (Button) view.findViewById(R.id.btn_level);
+            final Button btnKeys = (Button) view.findViewById(R.id.btn_keys);
             final Button btnPin = (Button) view.findViewById(R.id.btn_pin);
             final Button btnBuzz = (Button) view.findViewById(R.id.btn_buzz);
+            final Handler handle = new Handler() {
+                public void handleMessage(Message msg) {
+                    int hacks = portal.getHacksRemaining();
+                    if (hacks > 0) {
+                        int hot = portal.checkRunningHot();
+                        if (hot > 0) {
+                            btnHack.setText("");
+                            btnHack.setHint(hacks + " hacks, wait " + Utils.shortTime(portal.checkRunningHot()));
+                        } else {
+                            btnHack.setText(Utils.unicode(Utils.UNICODE_BOLT) + " " + hacks + " hacks remaining");
+                        }
+                    } else {
+                        btnHack.setText("");
+                        btnHack.setHint(R.string.no_hacks_remaining);
+                        btnBurn.setHint("Burned out for " + Utils.shortTime(portal.checkBurnedOut()));
+                    }
+                    int burn = portal.checkBurnedOut();
+                    if (burn > 0) {
+                        btnBurn.setHint("Burned out for " + Utils.shortTime(burn));
+                    }
+                    int align = portal.getAlignment();
+                    String label = "";
+                    switch (align) {
+                        case Portal.ALIGN_NEUTRAL:
+                            label = "Neutral";
+                            break;
+                        case Portal.ALIGN_RESISTANCE:
+                            label = "Resistance";
+                            break;
+                        case Portal.ALIGN_ENLIGHTENED:
+                            label = "Enlightened";
+                            break;
+                    }
+                    btnAlign.setText(label);
+                    if (align > 0) {
+                        btnAlign.setTextColor(Color.parseColor(Utils.COLOUR_ALIGNMENT[align]));
+                    }
+                    int level = portal.getLevel();
+                    if (level > 0) {
+                        btnLevel.setText("L" + level);
+                        btnLevel.setTextColor(Color.parseColor(level == 0 ? "white" : Utils.COLOUR_LEVEL[level]));
+                    } else {
+                        btnLevel.setText("");
+                    }
+                    int keys = portal.getKeys();
+                    if (keys > 0) {
+                        btnKeys.setText(Utils.unicode(Utils.UNICODE_KEY) + " " + keys);
+                        btnKeys.setTextColor(Color.parseColor(Utils.COLOUR_KEYS));
+                    } else {
+                        btnKeys.setText("");
+                    }
+                    btnPin.setText(portal.isPinned() ? Utils.unicode(Utils.UNICODE_PIN) : "");
+                    btnBuzz.setText(portal.isResoBuzz() ? Utils.unicode(Utils.UNICODE_BELL) : "");
+                }
+            };
+            final Timer loop = new Timer();
+            loop.scheduleAtFixedRate(new TimerTask() {
+                public void run() {
+                    handle.obtainMessage().sendToTarget();
+                }
+            }, 0, 500);
             mPortalMenu = new AlertDialog.Builder(this)
                 .setTitle(portal.getName())
                 .setView(view)
-                .setOnCancelListener(dialogClose)
+                .setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialog) {
+                        loop.cancel();
+                        finish();
+                    }
+                })
                 .create();
             ((Button) view.findViewById(R.id.btn_edit)).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -222,9 +293,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                 @Override
                 public boolean onLongClick(View view) {
                     resetPortal(i, portal);
-                    btnHack.setText(Utils.unicode(Utils.UNICODE_BOLT) + " 4 hacks remaining");
-                    btnBurn.setText("");
-                    btnBurn.setHint(R.string.not_burned_out);
+                    handle.obtainMessage().sendToTarget();
                     return true;
                 }
             };
@@ -232,109 +301,50 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                 @Override
                 public void onClick(View view) {
                     hackPortal(i, portal);
-                    int hacks = portal.getHacksRemaining();
-                    if (hacks > 0) {
-                        btnHack.setText("");
-                        btnHack.setHint(hacks + " hacks  |  Wait " + Utils.shortTime(portal.checkRunningHot()));
-                    } else {
-                        btnHack.setText("");
-                        btnHack.setHint(R.string.no_hacks_remaining);
-                        btnBurn.setHint("Burned out for " + Utils.shortTime(portal.checkBurnedOut()));
-                    }
+                    handle.obtainMessage().sendToTarget();
                 }
             });
             btnHack.setOnLongClickListener(reset);
-            int hot = portal.checkRunningHot();
-            if (hot > 0) {
-                btnHack.setHint("Next hack in " + Utils.shortTime(hot));
-            } else {
-                int hacks = portal.getHacksRemaining();
-                if (hacks > 0) {
-                    btnHack.setText(Utils.unicode(Utils.UNICODE_BOLT) + " " + hacks + " hacks remaining");
-                }
-            }
             btnBurn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     burnOutPortal(i, portal);
-                    btnHack.setText("");
-                    btnHack.setHint(R.string.no_hacks_remaining);
-                    btnBurn.setHint("Burned out for " + Utils.shortTime(portal.checkBurnedOut()));
+                    handle.obtainMessage().sendToTarget();
                 }
             });
             btnBurn.setOnLongClickListener(reset);
-            int burn = portal.checkBurnedOut();
-            if (burn > 0) {
-                btnBurn.setHint("Burned out for " + Utils.shortTime(burn));
-            }
             btnAlign.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     showAlignment(i, portal);
-                    mPortalMenu.dismiss();
                 }
             });
-            int align = portal.getAlignment();
-            if (align > 0) {
-                String label = null;
-                switch (align) {
-                    case Portal.ALIGN_NEUTRAL:
-                        label = "Neutral";
-                        break;
-                    case Portal.ALIGN_RESISTANCE:
-                        label = "Resistance";
-                        break;
-                    case Portal.ALIGN_ENLIGHTENED:
-                        label = "Enlightened";
-                        break;
-                }
-                btnAlign.setText(label);
-                btnAlign.setTextColor(Color.parseColor(Utils.COLOUR_ALIGNMENT[align]));
-            }
             btnLevel.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     showLevel(i, portal);
-                    mPortalMenu.dismiss();
                 }
             });
-            int level = portal.getLevel();
-            if (level > 0) {
-                btnLevel.setText("L" + level);
-                btnLevel.setTextColor(Color.parseColor(Utils.COLOUR_LEVEL[level]));
-            }
             btnKeys.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     showKeyCount(i, portal);
-                    mPortalMenu.dismiss();
                 }
             });
-            int keys = portal.getKeys();
-            if (keys > 0) {
-                btnKeys.setText(Utils.unicode(Utils.UNICODE_KEY) + " " + keys);
-                btnKeys.setTextColor(Color.parseColor(Utils.COLOUR_KEYS));
-            }
             btnPin.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     pinPortal(i, portal);
-                    btnPin.setText(portal.isPinned() ? Utils.unicode(Utils.UNICODE_PIN) : "");
+                    handle.obtainMessage().sendToTarget();
                 }
             });
-            if (portal.isPinned()) {
-                btnPin.setText(Utils.unicode(Utils.UNICODE_PIN));
-            }
             btnBuzz.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     resoBuzzPortal(i, portal);
-                    btnBuzz.setText(portal.isResoBuzz() ? Utils.unicode(Utils.UNICODE_BELL) : "");
+                    handle.obtainMessage().sendToTarget();
                 }
             });
-            if (portal.isResoBuzz()) {
-                btnBuzz.setText(Utils.unicode(Utils.UNICODE_BELL));
-            }
             mPortalMenu.show();
         } else if (action.equals("hack")) {
             hackPortal(i, portal);
@@ -379,7 +389,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     mLocationServiceWrap.updatePortal(i, portal);
                     Toast.makeText(MainActivity.this, "Updated alignment to " + alignments[portal.getAlignment()] + ".", Toast.LENGTH_LONG).show();
                     dialog.dismiss();
-                    finish();
                 }
             })
             .setOnKeyListener(new DialogInterface.OnKeyListener() {
@@ -391,7 +400,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     return false;
                 }
             })
-            .setOnCancelListener(dialogClose)
             .create();
         mAlignment.show();
     }
@@ -421,7 +429,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     mLocationServiceWrap.updatePortal(i, portal);
                     Toast.makeText(MainActivity.this, "Cleared current level.", Toast.LENGTH_LONG).show();
                     dialog.dismiss();
-                    finish();
                 }
             })
             .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -439,7 +446,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     return false;
                 }
             })
-            .setOnCancelListener(dialogClose)
             .create();
         View[] buttons = new View[]{
             view.findViewById(R.id.btn_level1), view.findViewById(R.id.btn_level2),
@@ -502,7 +508,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                         Toast.makeText(MainActivity.this, "Cleared key count.", Toast.LENGTH_LONG).show();
                     }
                     dialog.dismiss();
-                    finish();
                 }
             })
             .setNeutralButton(R.string.reset, null)
@@ -521,7 +526,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     return false;
                 }
             })
-            .setOnCancelListener(dialogClose)
             .create();
         view.findViewById(R.id.btn_minus).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -578,11 +582,11 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         String message = "Hacked " + portal.getName() + ".\n";
         // Just running hot, wait 5 mins
         if (hacks > 0) {
-            portal.setRunningHot();
+            portal.setRunningHot(60 * 5);
             message += hacks + " hack" + Utils.plural(hacks) + " remaining before burnout.";
         // Burnt out, wait 4 hours
         } else {
-            portal.setBurnedOut();
+            portal.setBurnedOut(60 * 60 * 4);
             message += "Portal burned out!";
         }
         mLocationServiceWrap.updatePortal(i, portal);
@@ -596,7 +600,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
      */
     public void burnOutPortal(int i, Portal portal) {
         // Burnt out, wait 4 hours
-        portal.setBurnedOut();
+        portal.setBurnedOut(60 * 60 * 4);
         mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, portal.getName() + " burned out.", Toast.LENGTH_SHORT).show();
     }
