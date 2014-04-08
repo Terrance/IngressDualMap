@@ -310,7 +310,7 @@ public class PortalStore {
                 String file = mFiles.get(mPos);
                 publishProgress(file);
                 try {
-                    String list = webb.post("/" + file).ensureSuccess().asString().getBody();
+                    String list = webb.post("/" + file.replace(" ", "%20")).ensureSuccess().asString().getBody();
                     OutputStream outputStream = new FileOutputStream(new File(folder.getAbsolutePath() + "/" + file));
                     outputStream.write(list.getBytes());
                     outputStream.close();
@@ -326,7 +326,7 @@ public class PortalStore {
             if (messages.size() > 0) {
                 mSuccess = false;
                 try {
-                    OutputStream outputStream = new FileOutputStream(new File("[Download].log"), true);
+                    OutputStream outputStream = new FileOutputStream(new File(folder.getPath() + "/.download.log"), true);
                     SimpleDateFormat formatter = new SimpleDateFormat("[dd/MM/yyyy HH:mm:ss]\n", Locale.getDefault());
                     outputStream.write(formatter.format(Calendar.getInstance().getTime()).getBytes());
                     for (String message : messages.toArray(new String[messages.size()])) {

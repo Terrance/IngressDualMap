@@ -28,17 +28,25 @@ public class Utils {
      */
     public static final int UNICODE_BOLT = 0x26A1;
     /**
+     * Unicode symbol for tick.
+     */
+    public static final int UNICODE_TICK = 0x2714;
+    /**
+     * Unicode symbol for tick.
+     */
+    public static final int UNICODE_CROSS = 0x274C;
+    /**
      * Unicode symbol for up arrow.
      */
     public static final int UNICODE_UP = 0x2B06;
     /**
-     * Unicode symbol for tick.
-     */
-    public static final int UNICODE_CHECK = 0x2714;
-    /**
      * Unicode symbol for pushpin.
      */
     public static final int UNICODE_PIN = 0x1F4CC;
+    /**
+     * Unicode symbol for paperclip.
+     */
+    public static final int UNICODE_PAPERCLIP = 0x1F4CE;
     /**
      * Unicode symbol for key.
      */

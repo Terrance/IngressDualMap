@@ -25,7 +25,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 
 /**
- * Main UI activity for enabling the service, downloading portal lists or editing setings.
+ * Main UI activity for enabling the service, downloading portal lists or editing settings.
  */
 public class MainActivity extends ActionBarActivity implements ActionBar.OnNavigationListener {
 
@@ -47,7 +47,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     public static final String ACTION_PIN = "pin";
 
     private boolean mIntent = false;
-    private boolean mInit = false;
     private boolean mShowing = false;
     private AlertDialog mPortalMenu, mAlignment, mLevel, mKeyCount, mEdit, mDelete;
     private ServiceConnection mConnection;
@@ -91,21 +90,22 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     @Override
     public void onResume() {
         super.onResume();
-        if (!mInit) {
-            connectService();
-        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        unbindService(mConnection);
-        mInit = false;
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
+    }
+
+    @Override
+    public void finish() {
+        unbindService(mConnection);
+        super.finish();
     }
 
     /**
@@ -117,7 +117,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             public void onServiceConnected(ComponentName className, IBinder service) {
                 mLocationService = ILocationService.Stub.asInterface(service);
                 mLocationServiceWrap.set(mLocationService);
-                mInit = true;
                 if (mIntent && !mShowing) {
                     mShowing = true;
                     showPortalMenu();

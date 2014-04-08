@@ -95,17 +95,17 @@ public class DownloadFragment extends Fragment {
                         PortalStore.Download dl = mDownloads.get(i);
                         switch (dl.getLocalState()) {
                             case PortalStore.Download.STATE_NONE:
-                                mLabels[i] = Utils.unicode(Utils.UNICODE_NO);
+                                mLabels[i] = Utils.unicode(Utils.UNICODE_CROSS);
                                 break;
                             case PortalStore.Download.STATE_OLD:
                                 mLabels[i] = Utils.unicode(Utils.UNICODE_UP);
                                 check.append(i, true);
                                 break;
                             case PortalStore.Download.STATE_CURRENT:
-                                mLabels[i] = Utils.unicode(Utils.UNICODE_CHECK);
+                                mLabels[i] = Utils.unicode(Utils.UNICODE_PAPERCLIP);
                                 break;
                         }
-                        mLabels[i] += " " + dl.getLocation() + ", " + dl.getCategory();
+                        mLabels[i] += " " + dl.getLocation() + " (" + dl.getCategory() + ")";
                     }
                     ArrayAdapter<String> adapter = new ArrayAdapter<String>(mActivity,
                             android.R.layout.simple_list_item_multiple_choice, mLabels);

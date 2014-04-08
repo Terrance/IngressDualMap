@@ -41,7 +41,6 @@
 
         <activity
             android:name="to.uk.terrance.ingressdualmap.MainActivity"
-            android:excludeFromRecents="true"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
