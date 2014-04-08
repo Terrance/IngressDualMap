@@ -95,14 +95,14 @@ public class DownloadFragment extends Fragment {
                         PortalStore.Download dl = mDownloads.get(i);
                         switch (dl.getLocalState()) {
                             case PortalStore.Download.STATE_NONE:
-                                mLabels[i] = Utils.unicode(0x1F6AB);
+                                mLabels[i] = Utils.unicode(Utils.UNICODE_NO);
                                 break;
                             case PortalStore.Download.STATE_OLD:
-                                mLabels[i] = Utils.unicode(0x2B06);
+                                mLabels[i] = Utils.unicode(Utils.UNICODE_UP);
                                 check.append(i, true);
                                 break;
                             case PortalStore.Download.STATE_CURRENT:
-                                mLabels[i] = Utils.unicode(0x2714);
+                                mLabels[i] = Utils.unicode(Utils.UNICODE_CHECK);
                                 break;
                         }
                         mLabels[i] += " " + dl.getLocation() + ", " + dl.getCategory();

@@ -74,7 +74,7 @@ public class ListArrayAdapter extends ArrayAdapter<Portal> {
         textName.setText(portal.getName());
         String meta = "";
         if (portal.getKeys() > 0) {
-            meta += Utils.unicode(0x1F511) + " " + portal.getKeys() + "  |  ";
+            meta += Utils.unicode(Utils.UNICODE_KEY) + " " + portal.getKeys() + "  |  ";
         }
         if (mLastLocation != null) {
             float[] distance = new float[1];

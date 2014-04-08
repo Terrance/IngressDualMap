@@ -144,7 +144,7 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
             switch (item.getItemId()) {
                 case R.id.menu_delete:
                     new AlertDialog.Builder(mActivity)
-                        .setMessage("Delete " + String.valueOf(checked.size()) + " portal" + (checked.size() == 1 ? "" : "s")
+                        .setMessage("Delete " + String.valueOf(checked.size()) + " portal" + Utils.plural(checked.size())
                                 + "?  This will just remove them from the currently imported list.")
                         .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
                             @Override
@@ -221,7 +221,7 @@ public class ListFragment extends Fragment implements ILocationServiceFragment {
      * Show a custom dialog for adding a new portal.
      */
     public void add() {
-        final View view = mActivity.getLayoutInflater().inflate(R.layout.dialog_portal, null);
+        final View view = mActivity.getLayoutInflater().inflate(R.layout.dialog_edit, null);
         final EditText editName = (EditText) view.findViewById(R.id.edit_name);
         final EditText editLat = (EditText) view.findViewById(R.id.edit_lat);
         final EditText editLng = (EditText) view.findViewById(R.id.edit_lng);

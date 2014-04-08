@@ -9,11 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Build;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -44,9 +46,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
      */
     public static final String ACTION_PIN = "pin";
 
-    private boolean mFromNotif = false;
+    private boolean mIntent = false;
     private boolean mInit = false;
-    private AlertDialog mPortalMenu, mAlignment, mLevel, mKeyCount, mEdit;
+    private boolean mShowing = false;
+    private AlertDialog mPortalMenu, mAlignment, mLevel, mKeyCount, mEdit, mDelete;
     private ServiceConnection mConnection;
     private ILocationService mLocationService;
     private LocationServiceWrap mLocationServiceWrap = new LocationServiceWrap();
@@ -58,7 +61,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         String action = getIntent().getAction();
         // Portal notification action (wait for service)
         if (action.startsWith(Utils.APP_PACKAGE)) {
-            mFromNotif = true;
+            mIntent = true;
         // Main app UI
         } else {
             setTheme(R.style.Theme_IDM);
@@ -82,7 +85,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                 }
             }
         }
-        mInit = true;
         connectService();
     }
 
@@ -97,10 +99,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     @Override
     public void onPause() {
         super.onPause();
-        // Close all open dialogs
-        if (!mFromNotif) {
-            hideAll();
-        }
         unbindService(mConnection);
         mInit = false;
     }
@@ -119,14 +117,16 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
             public void onServiceConnected(ComponentName className, IBinder service) {
                 mLocationService = ILocationService.Stub.asInterface(service);
                 mLocationServiceWrap.set(mLocationService);
-                if (mFromNotif) {
+                mInit = true;
+                if (mIntent && !mShowing) {
+                    mShowing = true;
                     showPortalMenu();
                 }
             }
             public void onServiceDisconnected(ComponentName className) {
                 mLocationService = null;
                 mLocationServiceWrap.set(null);
-                if (mFromNotif) {
+                if (mIntent) {
                     // Lost connection, close
                     hideAll();
                     finish();
@@ -158,8 +158,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        // Serialize the current dropdown position
-        outState.putInt("actionbar_selected", getSupportActionBar().getSelectedNavigationIndex());
+        if (!mIntent) {
+            // Serialize the current dropdown position
+            outState.putInt("actionbar_selected", getSupportActionBar().getSelectedNavigationIndex());
+        }
     }
 
     @Override
@@ -184,78 +186,156 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
      * Show an {@link AlertDialog} menu with all options relating to specific portals.
      */
     public void showPortalMenu() {
-        hideAll();
         String[] params = getIntent().getAction().substring(Utils.APP_PACKAGE.length() + 1).split("\\.");
         String action = params[0];
         final int i = Integer.valueOf(params[1]);
         final Portal portal = mLocationServiceWrap.getPortal(i);
         Log.d(Utils.APP_TAG, portal.toString());
         if (action.equals("opts")) {
+            View view = getLayoutInflater().inflate(R.layout.dialog_portal, null);
+            final Button btnHack = (Button) view.findViewById(R.id.btn_hack);
+            final Button btnBurn = (Button) view.findViewById(R.id.btn_burn);
+            Button btnAlign = (Button) view.findViewById(R.id.btn_align);
+            Button btnLevel = (Button) view.findViewById(R.id.btn_level);
+            Button btnKeys = (Button) view.findViewById(R.id.btn_keys);
+            final Button btnPin = (Button) view.findViewById(R.id.btn_pin);
+            final Button btnBuzz = (Button) view.findViewById(R.id.btn_buzz);
             mPortalMenu = new AlertDialog.Builder(this)
                 .setTitle(portal.getName())
-                .setItems(new String[]{
-                    getString(R.string.mark_hacked),
-                    getString(R.string.mark_burned_out),
-                    getString(R.string.reset_status),
-                    getString(R.string.set_alignment),
-                    getString(R.string.set_level),
-                    getString(R.string.set_key_count),
-                    getString(portal.isPinned() ? R.string.unpin_notification : R.string.pin_notification),
-                    getString(portal.isResoBuzz() ? R.string.disable_resonator_buzzer : R.string.enable_resonator_buzzer),
-                    getString(R.string.edit_portal)
-                }, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        switch (which) {
-                            case 0:
-                                hackPortal(i, portal);
-                                break;
-                            case 1:
-                                burnOutPortal(i, portal);
-                                break;
-                            case 2:
-                                resetPortal(i, portal);
-                                break;
-                            case 3:
-                                showAlignment(i, portal);
-                                return;
-                            case 4:
-                                showLevel(i, portal);
-                                return;
-                            case 5:
-                                showKeyCount(i, portal);
-                                return;
-                            case 6:
-                                pinPortal(i, portal);
-                                break;
-                            case 7:
-                                resoBuzzPortal(i, portal);
-                                break;
-                            case 8:
-                                showEdit(i, portal);
-                                return;
-                        }
-                        dialog.dismiss();
-                        finish();
-                    }
-                })
-                .setNegativeButton(R.string.cancel, new AlertDialog.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.cancel();
-                    }
-                })
-                .setOnKeyListener(new DialogInterface.OnKeyListener() {
-                    @Override
-                    public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
-                        if (keyCode == KeyEvent.KEYCODE_BACK) {
-                            dialog.cancel();
-                        }
-                        return false;
-                    }
-                })
+                .setView(view)
                 .setOnCancelListener(dialogClose)
                 .create();
+            ((Button) view.findViewById(R.id.btn_edit)).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showEdit(i, portal);
+                    mPortalMenu.dismiss();
+                }
+            });
+            ((Button) view.findViewById(R.id.btn_delete)).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showDelete(i, portal);
+                    mPortalMenu.dismiss();
+                }
+            });
+            View.OnLongClickListener reset = new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+                    resetPortal(i, portal);
+                    btnHack.setText(Utils.unicode(Utils.UNICODE_BOLT) + " 4 hacks remaining");
+                    btnBurn.setText("");
+                    btnBurn.setHint(R.string.not_burned_out);
+                    return true;
+                }
+            };
+            btnHack.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    hackPortal(i, portal);
+                    int hacks = portal.getHacksRemaining();
+                    if (hacks > 0) {
+                        btnHack.setText("");
+                        btnHack.setHint(hacks + " hacks  |  Wait " + Utils.shortTime(portal.checkRunningHot()));
+                    } else {
+                        btnHack.setText("");
+                        btnHack.setHint(R.string.no_hacks_remaining);
+                        btnBurn.setHint("Burned out for " + Utils.shortTime(portal.checkBurnedOut()));
+                    }
+                }
+            });
+            btnHack.setOnLongClickListener(reset);
+            int hot = portal.checkRunningHot();
+            if (hot > 0) {
+                btnHack.setHint("Next hack in " + Utils.shortTime(hot));
+            } else {
+                int hacks = portal.getHacksRemaining();
+                if (hacks > 0) {
+                    btnHack.setText(Utils.unicode(Utils.UNICODE_BOLT) + " " + hacks + " hacks remaining");
+                }
+            }
+            btnBurn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    burnOutPortal(i, portal);
+                    btnHack.setText("");
+                    btnHack.setHint(R.string.no_hacks_remaining);
+                    btnBurn.setHint("Burned out for " + Utils.shortTime(portal.checkBurnedOut()));
+                }
+            });
+            btnBurn.setOnLongClickListener(reset);
+            int burn = portal.checkBurnedOut();
+            if (burn > 0) {
+                btnBurn.setHint("Burned out for " + Utils.shortTime(burn));
+            }
+            btnAlign.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showAlignment(i, portal);
+                    mPortalMenu.dismiss();
+                }
+            });
+            int align = portal.getAlignment();
+            if (align > 0) {
+                String label = null;
+                switch (align) {
+                    case Portal.ALIGN_NEUTRAL:
+                        label = "Neutral";
+                        break;
+                    case Portal.ALIGN_RESISTANCE:
+                        label = "Resistance";
+                        break;
+                    case Portal.ALIGN_ENLIGHTENED:
+                        label = "Enlightened";
+                        break;
+                }
+                btnAlign.setText(label);
+                btnAlign.setTextColor(Color.parseColor(Utils.COLOUR_ALIGNMENT[align]));
+            }
+            btnLevel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showLevel(i, portal);
+                    mPortalMenu.dismiss();
+                }
+            });
+            int level = portal.getLevel();
+            if (level > 0) {
+                btnLevel.setText("L" + level);
+                btnLevel.setTextColor(Color.parseColor(Utils.COLOUR_LEVEL[level]));
+            }
+            btnKeys.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    showKeyCount(i, portal);
+                    mPortalMenu.dismiss();
+                }
+            });
+            int keys = portal.getKeys();
+            if (keys > 0) {
+                btnKeys.setText(Utils.unicode(Utils.UNICODE_KEY) + " " + keys);
+                btnKeys.setTextColor(Color.parseColor(Utils.COLOUR_KEYS));
+            }
+            btnPin.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    pinPortal(i, portal);
+                    btnPin.setText(portal.isPinned() ? Utils.unicode(Utils.UNICODE_PIN) : "");
+                }
+            });
+            if (portal.isPinned()) {
+                btnPin.setText(Utils.unicode(Utils.UNICODE_PIN));
+            }
+            btnBuzz.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    resoBuzzPortal(i, portal);
+                    btnBuzz.setText(portal.isResoBuzz() ? Utils.unicode(Utils.UNICODE_BELL) : "");
+                }
+            });
+            if (portal.isResoBuzz()) {
+                btnBuzz.setText(Utils.unicode(Utils.UNICODE_BELL));
+            }
             mPortalMenu.show();
         } else if (action.equals("hack")) {
             hackPortal(i, portal);
@@ -504,11 +584,10 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         // Burnt out, wait 4 hours
         } else {
             portal.setBurnedOut();
-            message += "Portal burnt out!";
+            message += "Portal burned out!";
         }
         mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -521,7 +600,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         portal.setBurnedOut();
         mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, portal.getName() + " burned out.", Toast.LENGTH_SHORT).show();
-        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -534,7 +612,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         portal.reset();
         mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, "Reset " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
-        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -547,7 +624,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         portal.setPinned(!portal.isPinned());
         mLocationServiceWrap.updatePortal(i, portal);
         Toast.makeText(this, (portal.isPinned() ? "P" : "Unp") + "inned " + portal.getName() + ".", Toast.LENGTH_SHORT).show();
-        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
@@ -564,14 +640,13 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         } else {
             Toast.makeText(this, "Resonator buzz disabled.", Toast.LENGTH_SHORT).show();
         }
-        mLocationServiceWrap.notifyPortal(i);
     }
 
     /**
      * Show a custom dialog for editing a portal's name or location.
      */
     public void showEdit(final int i, final Portal portal) {
-        final View view = getLayoutInflater().inflate(R.layout.dialog_portal, null);
+        final View view = getLayoutInflater().inflate(R.layout.dialog_edit, null);
         final EditText editName = (EditText) view.findViewById(R.id.edit_name);
         final EditText editLat = (EditText) view.findViewById(R.id.edit_lat);
         final EditText editLng = (EditText) view.findViewById(R.id.edit_lng);
@@ -659,6 +734,51 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
     }
 
     /**
+     * Show a confirmation dialog for deleting a portal.
+     */
+    public void showDelete(final int i, final Portal portal) {
+        mDelete = new AlertDialog.Builder(this)
+            .setMessage("Delete this portal?  This will just remove it from the currently imported list.")
+            .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    mLocationServiceWrap.removePortals(new int[]{i});
+                    dialog.dismiss();
+                    finish();
+                }
+            })
+            .setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.cancel();
+                    finish();
+                }
+            })
+            .setOnKeyListener(new DialogInterface.OnKeyListener() {
+                @Override
+                public boolean onKey(DialogInterface dialog, int keyCode, KeyEvent event) {
+                    if (keyCode == KeyEvent.KEYCODE_BACK) {
+                        dialog.cancel();
+                    }
+                    return false;
+                }
+            })
+            .setOnCancelListener(dialogClose)
+            .create();
+        mDelete.show();
+    }
+
+    /**
+     * Close the edit dialog if open.
+     */
+    public void hideDelete() {
+        if (mDelete != null) {
+            mDelete.cancel();
+            mDelete = null;
+        }
+    }
+
+    /**
      * Close any open menus or dialogs.
      */
     public void hideAll() {
@@ -667,6 +787,7 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
         hideLevel();
         hideKeyCount();
         hideEdit();
+        hideDelete();
     }
 
 }

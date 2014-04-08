@@ -243,9 +243,9 @@ public class LocationService extends Service {
                 }
             }
             // Show notification
-            String icons = (portal.isPinned() ? Utils.unicode(0x1F4CC) : "")
-                         + (portal.getKeys() > 0 ? Utils.unicode(0x1F511) : "")
-                         + (portal.isResoBuzz() ? Utils.unicode(0x1F514) : "");
+            String icons = (portal.isPinned() ? Utils.unicode(Utils.UNICODE_PIN) : "")
+                         + (portal.getKeys() > 0 ? Utils.unicode(Utils.UNICODE_KEY) : "")
+                         + (portal.isResoBuzz() ? Utils.unicode(Utils.UNICODE_BELL) : "");
             if (icons.length() > 0 && portal.getAlignment() != Portal.ALIGN_UNDEFINED) {
                 icons += " ";
             }
@@ -353,11 +353,6 @@ public class LocationService extends Service {
                 mPortals.remove(indexes[i]);
             }
             backup();
-        }
-        @Override
-        public void notifyPortal(int i) {
-            Portal portal = mPortals.get(i);
-            LocationService.this.notifyPortal(i, portal.getDistance() <= 50 || portal.isPinned());
         }
         @Override
         public void refreshSettings(int[] settings, boolean[] filters) {

@@ -223,7 +223,7 @@ public class Portal implements Parcelable {
     }
     /**
      * Test if the portal is burned out by comparing the current time to the reset time.
-     * @return <code>0</code> if not running hot, otherwise the number of seconds left.
+     * @return <code>0</code> if not burned out, otherwise the number of seconds left.
      */
     public int checkBurnedOut() {
         if (mBurnoutReset == null) {

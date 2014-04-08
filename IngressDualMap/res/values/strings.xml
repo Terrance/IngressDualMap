@@ -10,8 +10,6 @@
         <item>Maps</item>
         <item>Settings</item>
     </string-array>
-    <string name="start_service">Start service</string>
-    <string name="stop_service">Stop service</string>
     <string name="started">Started</string>
     <string name="stopped">Stopped</string>
     <string name="dismiss_notifications">Dismiss notifications</string>
@@ -19,12 +17,10 @@
     <string name="stop_and_exit">Stop and exit</string>
     <string name="download_portal_lists">Download portal lists</string>
     <string name="download_lists">Download lists</string>
-    <string name="delete_lists">Delete lists</string>
     <string name="import_portal_lists">Import portal lists</string>
     <string name="import_lists">Import lists</string>
     <string name="refresh_available_lists">Refresh available lists</string>
     <string name="refresh">Refresh</string>
-    <string name="retry">Retry</string>
     <string name="delete">Delete</string>
     <string name="delete_portals">Delete portals</string>
     <string name="refresh_all_portals">Refresh all portals</string>
@@ -44,11 +40,12 @@
     <string name="clear">Clear</string>
     <string name="save_settings">Save settings</string>
     <string name="cancel">Cancel</string>
+    <string name="edit">Edit</string>
     <string name="hack">Hack</string>
-    <string name="mark_hacked">Mark hacked</string>
-    <string name="mark_burned_out">Mark burned out</string>
+    <string name="no_hacks_remaining">No hacks remaining</string>
+    <string name="not_burned_out">Not burned out</string>
     <string name="reset">Reset</string>
-    <string name="reset_status">Reset status</string>
+    <string name="alignment">Alignment</string>
     <string name="set_alignment">Set alignment</string>
     <string-array name="alignment">
         <item>Undefined</item>
@@ -56,22 +53,20 @@
         <item>Resistance</item>
         <item>Enlightened</item>
     </string-array>
+    <string name="level">Level</string>
     <string name="set_level">Set level</string>
+    <string name="keys">Keys</string>
     <string name="set_key_count">Set key count</string>
     <string name="plus">+</string>
     <string name="minus">-</string>
     <string name="save">Save</string>
     <string name="pin">Pin</string>
-    <string name="pin_notification">Pin notification</string>
-    <string name="unpin_notification">Unpin notification</string>
-    <string name="enable_resonator_buzzer">Enable resonator buzz</string>
-    <string name="disable_resonator_buzzer">Disable resonator buzz</string>
+    <string name="buzz">Buzz</string>
     <string name="edit_portal">Edit portal</string>
     <string name="name">Name</string>
     <string name="latitude">Latitude</string>
     <string name="longitude">Longitude</string>
     <string name="here">Here</string>
-    <string name="notification_range">Notification range</string>
     <string name="filter_notifications">Filter notifications</string>
     <string name="by_range">By range:</string>
     <string name="no_filter">No filter</string>

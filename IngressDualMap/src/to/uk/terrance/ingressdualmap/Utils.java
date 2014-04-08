@@ -24,6 +24,47 @@ public class Utils {
     public static final String URL_LISTS = "http://idm.uk.to/lists";
 
     /**
+     * Unicode symbol for lightning.
+     */
+    public static final int UNICODE_BOLT = 0x26A1;
+    /**
+     * Unicode symbol for up arrow.
+     */
+    public static final int UNICODE_UP = 0x2B06;
+    /**
+     * Unicode symbol for tick.
+     */
+    public static final int UNICODE_CHECK = 0x2714;
+    /**
+     * Unicode symbol for pushpin.
+     */
+    public static final int UNICODE_PIN = 0x1F4CC;
+    /**
+     * Unicode symbol for key.
+     */
+    public static final int UNICODE_KEY = 0x1F511;
+    /**
+     * Unicode symbol for alert bell.
+     */
+    public static final int UNICODE_BELL = 0x1F514;
+    /**
+     * Unicode symbol for fire.
+     */
+    public static final int UNICODE_FIRE = 0x1F514;
+    /**
+     * Unicode symbol for clock.
+     */
+    public static final int UNICODE_CLOCK = 0x1F551;
+    /**
+     * Unicode symbol for not allowed.
+     */
+    public static final int UNICODE_NO = 0x1F6AB;
+
+    /**
+     * Colour for keys.
+     */
+    public static final String COLOUR_KEYS = "#f7d34a";
+    /**
      * Colours for portal levels.
      */
     public static final String[] COLOUR_LEVEL = new String[]{
@@ -33,7 +74,7 @@ public class Utils {
      * Colours for portal alignment.
      */
     public static final String[] COLOUR_ALIGNMENT = new String[]{
-        null, "#808080", "#0491D0", "#01BF01"
+        null, "#A0A0A0", "#0491D0", "#01BF01"
     };
 
     /**
@@ -54,9 +95,9 @@ public class Utils {
         if (time < 60) {
             return time + "sec";
         } else if (time < 60 * 60) {
-            return Math.round(time / 60) + "min" + (time % 60) + "sec";
+            return Math.round(time / 60) + "min " + (time % 60) + "sec";
         } else {
-            return Math.round(time / (60 * 60)) + "hr" + Math.round((time / 60) % 60) + "min";
+            return Math.round(time / (60 * 60)) + "hr " + Math.round((time / 60) % 60) + "min";
         }
     }
 

@@ -57,11 +57,6 @@ interface ILocationService {
      */
     void removePortals(in int[] indexes);
     /**
-     * Update and show the notification for the given portal if it is in range.
-     * @param i The index of the portal. 
-     */
-    void notifyPortal(int i);
-    /**
      * Refresh the service settings from {@link SharedPreferences}.
      * @param settings An array of integer settings as defined in {@link SettingsFragment#DEFAULTS}.
      * @param filters An array of boolean filters for notifications.

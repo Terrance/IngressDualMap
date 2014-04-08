@@ -189,19 +189,6 @@ public class LocationServiceWrap {
     }
 
     /**
-     * Wrapper for {@link ILocationService#notifyPortal} to handle service exceptions.
-     */
-    public void notifyPortal(int i) {
-        if (mLocationService != null) {
-            try {
-                mLocationService.notifyPortal(i);
-            } catch (RemoteException e) {
-                Log.e(Utils.APP_TAG, "Remote exception.", e);
-            }
-        }
-    }
-
-    /**
      * Wrapper for {@link ILocationService#refreshSettings} to handle service exceptions.
      */
     public void refreshSettings(int[] settings, boolean[] filters) {
