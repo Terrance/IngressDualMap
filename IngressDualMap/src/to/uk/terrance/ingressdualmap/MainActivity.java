@@ -2,6 +2,7 @@ package to.uk.terrance.ingressdualmap;
 
 import java.util.Timer;
 import java.util.TimerTask;
+
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
 import android.os.Bundle;
@@ -464,7 +465,6 @@ public class MainActivity extends ActionBarActivity implements ActionBar.OnNavig
                     mLocationServiceWrap.updatePortal(i, portal);
                     Toast.makeText(MainActivity.this, "Updated level to L" + portal.getLevel() + ".", Toast.LENGTH_LONG).show();
                     mLevel.dismiss();
-                    finish();
                 }
             });
         }

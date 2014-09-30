@@ -236,7 +236,7 @@ public class PortalStore {
                 localFiles.put(file.getName(), file);
             }
             try {
-                String content = webb.post("/dir.php").ensureSuccess().asString().getBody();
+                String content = webb.get("/").ensureSuccess().asString().getBody();
                 mDownloads = new ArrayList<Download>();
                 CSVReader reader = new CSVReader(new InputStreamReader(new ByteArrayInputStream(content.getBytes("UTF-8"))));
                 while (true) {
@@ -310,7 +310,7 @@ public class PortalStore {
                 String file = mFiles.get(mPos);
                 publishProgress(file);
                 try {
-                    String list = webb.post("/" + file.replace(" ", "%20")).ensureSuccess().asString().getBody();
+                    String list = webb.get("/" + file.replace(" ", "%20")).ensureSuccess().asString().getBody();
                     OutputStream outputStream = new FileOutputStream(new File(folder.getAbsolutePath() + "/" + file));
                     outputStream.write(list.getBytes());
                     outputStream.close();
