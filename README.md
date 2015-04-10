@@ -1,6 +1,8 @@
 Introduction
 ------------
 
+[![Join the chat at https://gitter.im/OllieTerrance/IngressDualMap](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OllieTerrance/IngressDualMap?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Ingress Dual Map is an app that runs alongside the official Ingress app, and shows notifications when portals are nearby.  These allow the tracking of distance, hack counts, cooldown times and burnout times, all from within the notification.
 
 
